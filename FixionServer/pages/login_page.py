@@ -3,28 +3,38 @@ import tkinter
 from tkinter import messagebox
 from customtkinter import set_default_color_theme
 
+from signup_page import open_signup_page
+from dashboard_page import open_dashboard_page
 
-from signup_page import open_signup_window
 
-from dashboard_page import open_dashboard_window
+def center_window(window, width, height):
+    """Centers a tkinter window on the screen"""
+    screen_width = window.winfo_screenwidth()
+    screen_height = window.winfo_screenheight()
+    x = (screen_width - width) // 2
+    y = (screen_height - height) // 2
+    window.geometry(f"{width}x{height}+{x}+{y}")
 
 
 def validate_login(username, password):
-    # buburahin din for testing lang
-    if username == "admin" and password == "password":
+    # For testing only
+    if username == "1" and password == "1":
         return True, {"username": username, "role": "admin"}
     return False, None
 
-if __name__ == "__main__":
+
+def open_login_page():
     try:
         set_default_color_theme("color_theme.json")
-    except:
-        print("Theme file not found. Using default theme.")
+    except Exception as e:
+        print(f"Theme file not found: {e}. Using default theme.")
 
     login = customtkinter.CTk()
-    login.geometry("700x500")
     login.title('Login Page')
 
+    # Set dimensions and center the window
+    width, height = 700, 500
+    center_window(login, width, height)
 
     def process_login():
         username = username_entry.get()
@@ -37,14 +47,12 @@ if __name__ == "__main__":
         is_valid, user_info = validate_login(username, password)
         if is_valid:
             login.destroy()
-            open_dashboard_window(user_info)
+            open_dashboard_page(user_info)
         else:
             messagebox.showerror("Error", "Invalid username or password!")
 
-
     def open_forgot_password():
-        messagebox.showinfo("Reset Password", "Password reset link has been sent to your email.")
-
+        messagebox.showinfo("Reset Password", "We will inform an admin that you forgot your password")
 
     frame = customtkinter.CTkFrame(master=login, width=450, height=460, corner_radius=18)
     frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
@@ -75,7 +83,11 @@ if __name__ == "__main__":
     login_btn.place(relx=0.5, rely=0.80, anchor=tkinter.CENTER)
 
     signup_btn = customtkinter.CTkButton(master=frame, width=180, text="Sign Up",
-                                         command=lambda: open_signup_window(login))
+                                         command=lambda: open_signup_page(login))
     signup_btn.place(relx=0.5, rely=0.88, anchor=tkinter.CENTER)
 
     login.mainloop()
+
+
+if __name__ == "__main__":
+    open_login_page()
