@@ -61,7 +61,8 @@
     "text_color_disabled": [
       "#ffffff",
       "#ffffff"
-    ]
+    ],
+    "bg_color": "transparent"
   },
   "CTkEntry": {
     "corner_radius": 12,
