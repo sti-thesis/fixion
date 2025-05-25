@@ -19,7 +19,10 @@ class FixionDashboard:
     def __init__(self):
         self.root = ctk.CTk()
         self.root.title("Fixion Dashboard")
-        self.root.geometry("1400x900")
+
+        # Make window responsive - minimum size but allow resizing
+        self.root.geometry("1200x800")
+        self.root.minsize(900, 600)
         self.root.configure(fg_color="#1a1a2e")
 
         # Variables for scan functionality
@@ -43,192 +46,202 @@ class FixionDashboard:
         self.update_system_metrics()
 
     def setup_ui(self):
-        # Main container
-        main_frame = ctk.CTkFrame(self.root, fg_color="transparent")
-        main_frame.pack(fill="both", expand=True, padx=20, pady=20)
+        # Create main scrollable frame
+        self.main_scrollable = ctk.CTkScrollableFrame(
+            self.root,
+            fg_color="transparent",
+            scrollbar_button_color="#0f3460",
+            scrollbar_button_hover_color="#16213e"
+        )
+        self.main_scrollable.pack(fill="both", expand=True, padx=10, pady=10)
 
-        # Top section - Scan area (Fixed height to prevent movement)
-        self.create_scan_section(main_frame)
+        # Configure grid weights for responsive behavior
+        self.main_scrollable.grid_columnconfigure(0, weight=1)
+
+        # Top section - Scan area
+        self.create_scan_section(self.main_scrollable)
 
         # Middle section - System and Network Health
-        self.create_health_section(main_frame)
+        self.create_health_section(self.main_scrollable)
 
         # Bottom section - Threats and Rollback
-        self.create_bottom_section(main_frame)
+        self.create_bottom_section(self.main_scrollable)
 
     def create_scan_section(self, parent):
-        # Fixed height container to prevent movement - increased height
-        scan_frame = ctk.CTkFrame(parent, height=380, fg_color="#16213e", border_width=2, border_color="#0f3460")
-        scan_frame.pack(fill="x", pady=(0, 20))
-        scan_frame.pack_propagate(False)  # Important: prevents resizing
+        # Responsive scan frame
+        scan_frame = ctk.CTkFrame(parent, fg_color="#16213e", border_width=2, border_color="#0f3460")
+        scan_frame.grid(row=0, column=0, sticky="ew", padx=5, pady=(0, 10))
+        scan_frame.grid_columnconfigure(0, weight=1)
 
         # Scan title
-        title_label = ctk.CTkLabel(scan_frame, text="System Scan", font=ctk.CTkFont(size=24, weight="bold"),
+        title_label = ctk.CTkLabel(scan_frame, text="System Scan", font=ctk.CTkFont(size=20, weight="bold"),
                                    text_color="#ffffff")
-        title_label.pack(pady=(20, 10))
+        title_label.grid(row=0, column=0, pady=(15, 10), sticky="ew")
 
-        # Main scan container with fixed dimensions
+        # Main scan container - use grid for better responsiveness
         scan_container = ctk.CTkFrame(scan_frame, fg_color="transparent")
-        scan_container.pack(fill="both", expand=True, padx=20, pady=(0, 20))
+        scan_container.grid(row=1, column=0, sticky="ew", padx=15, pady=(0, 15))
+        scan_container.grid_columnconfigure(0, weight=1)
+        scan_container.grid_columnconfigure(1, weight=1)
+        scan_container.grid_rowconfigure(0, weight=1)
 
-        # Left side - Progress and file info (Fixed width)
-        left_frame = ctk.CTkFrame(scan_container, fg_color="#0f3460", corner_radius=15, width=500)
-        left_frame.pack(side="left", fill="y", padx=(0, 10))
-        left_frame.pack_propagate(False)  # Prevent resizing
+        # Left side - Progress and file info (FIXED HEIGHT WITH SCROLLABLE CONTENT)
+        left_frame = ctk.CTkFrame(scan_container, fg_color="#0f3460", corner_radius=15)
+        left_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 5), pady=5)
+        left_frame.grid_columnconfigure(0, weight=1)
+        left_frame.grid_rowconfigure(3, weight=1)  # Make the files section expandable
 
-        # Scan button (large, center)
+        # Set a fixed height for the left frame to prevent expansion
+        left_frame.configure(height=400)
+        left_frame.grid_propagate(False)  # Prevent the frame from resizing based on content
+
+        # Scan button (responsive size)
         self.scan_button = ctk.CTkButton(
             left_frame,
             text="SCAN",
-            font=ctk.CTkFont(size=32, weight="bold"),
-            width=200,
-            height=80,
-            corner_radius=40,
+            font=ctk.CTkFont(size=24, weight="bold"),
+            height=60,
+            corner_radius=30,
             fg_color="#8b5cf6",
             hover_color="#7c3aed",
             command=self.start_scan
         )
-        self.scan_button.pack(pady=(30, 20))
+        self.scan_button.grid(row=0, column=0, pady=(20, 15), padx=20, sticky="ew")
 
         # Progress bar
-        self.progress_bar = ctk.CTkProgressBar(left_frame, width=300, height=20, progress_color="#10b981")
-        self.progress_bar.pack(pady=(0, 10))
+        self.progress_bar = ctk.CTkProgressBar(left_frame, height=15, progress_color="#10b981")
+        self.progress_bar.grid(row=1, column=0, pady=(0, 8), padx=20, sticky="ew")
         self.progress_bar.set(0)
 
         # Progress info
-        self.progress_label = ctk.CTkLabel(left_frame, text="Ready to scan", font=ctk.CTkFont(size=14),
+        self.progress_label = ctk.CTkLabel(left_frame, text="Ready to scan", font=ctk.CTkFont(size=12),
                                            text_color="#94a3b8")
-        self.progress_label.pack(pady=(0, 10))
+        self.progress_label.grid(row=2, column=0, pady=(0, 8), padx=20, sticky="ew")
 
-        # Files being scanned section (Fixed height)
-        files_frame = ctk.CTkFrame(left_frame, fg_color="#1e293b", corner_radius=10, height=100)
-        files_frame.pack(fill="x", padx=20, pady=(10, 20))
-        files_frame.pack_propagate(False)
+        # Files being scanned section (SCROLLABLE TO HANDLE OVERFLOW)
+        files_frame = ctk.CTkScrollableFrame(left_frame, fg_color="#1e293b", corner_radius=10)
+        files_frame.grid(row=3, column=0, sticky="nsew", padx=15, pady=(8, 15))
 
-        files_title = ctk.CTkLabel(files_frame, text="Files Being Scanned:", font=ctk.CTkFont(size=12, weight="bold"),
+        files_title = ctk.CTkLabel(files_frame, text="Files Being Scanned:", font=ctk.CTkFont(size=11, weight="bold"),
                                    text_color="#ffffff")
-        files_title.pack(pady=(10, 5))
+        files_title.pack(pady=(8, 3), padx=8, anchor="w")
 
-        # Current file being scanned with better formatting
+        # Current file being scanned
         self.file_label = ctk.CTkLabel(files_frame, text="Ready to scan...",
-                                       font=ctk.CTkFont(size=11),
+                                       font=ctk.CTkFont(size=10),
                                        text_color="#94a3b8",
-                                       wraplength=300,
-                                       justify="left")
-        self.file_label.pack(pady=(0, 10), padx=10)
+                                       wraplength=250,
+                                       justify="left",
+                                       anchor="w")
+        self.file_label.pack(pady=(0, 8), padx=8, anchor="w")
 
-        # Right side - Manual scan options (Fixed width and better organized)
-        right_frame = ctk.CTkFrame(scan_container, fg_color="#0f3460", corner_radius=15, width=500)
-        right_frame.pack(side="right", fill="y", padx=(10, 0))
-        right_frame.pack_propagate(False)  # Prevent resizing
+        # Right side - Manual scan options (ALSO FIXED HEIGHT)
+        right_frame = ctk.CTkFrame(scan_container, fg_color="#0f3460", corner_radius=15)
+        right_frame.grid(row=0, column=1, sticky="nsew", padx=(5, 0), pady=5)
+        right_frame.grid_columnconfigure(0, weight=1)
+        right_frame.grid_rowconfigure(1, weight=1)  # Make scan options expandable
 
-        options_label = ctk.CTkLabel(right_frame, text="Scan Options", font=ctk.CTkFont(size=18, weight="bold"),
+        # Set matching fixed height and prevent propagation
+        right_frame.configure(height=400)
+        right_frame.grid_propagate(False)
+
+        options_label = ctk.CTkLabel(right_frame, text="Scan Options", font=ctk.CTkFont(size=16, weight="bold"),
                                      text_color="#ffffff")
-        options_label.pack(pady=(20, 15))
+        options_label.grid(row=0, column=0, pady=(15, 10), padx=15, sticky="ew")
 
-        # Scan type selection in organized groups - Fixed container height
-        scan_options_frame = ctk.CTkFrame(right_frame, fg_color="#1e293b", corner_radius=10, height=220)
-        scan_options_frame.pack(fill="x", padx=20, pady=(0, 15))
-        scan_options_frame.pack_propagate(False)  # Prevent resizing
+        # Scan type selection in organized groups (SCROLLABLE CONTAINER)
+        scan_options_frame = ctk.CTkScrollableFrame(right_frame, fg_color="#1e293b", corner_radius=10)
+        scan_options_frame.grid(row=1, column=0, sticky="nsew", padx=15, pady=(0, 10))
 
         self.scan_var = ctk.StringVar(value="Quick Scan")
 
         # Quick Scan
-        quick_frame = ctk.CTkFrame(scan_options_frame, fg_color="transparent", height=50)
-        quick_frame.pack(fill="x", padx=15, pady=(10, 5))
-        quick_frame.pack_propagate(False)
+        quick_frame = ctk.CTkFrame(scan_options_frame, fg_color="transparent")
+        quick_frame.pack(fill="x", padx=10, pady=(8, 3))
 
         quick_radio = ctk.CTkRadioButton(quick_frame, text="Quick Scan", variable=self.scan_var, value="Quick Scan",
-                                         font=ctk.CTkFont(size=14))
-        quick_radio.pack(anchor="w", pady=2)
+                                         font=ctk.CTkFont(size=12))
+        quick_radio.pack(anchor="w")
 
         quick_desc = ctk.CTkLabel(quick_frame, text="Scans common threat locations (~5 minutes)",
-                                  font=ctk.CTkFont(size=10), text_color="#64748b")
-        quick_desc.pack(anchor="w", padx=20)
+                                  font=ctk.CTkFont(size=9), text_color="#64748b")
+        quick_desc.pack(anchor="w", padx=15)
 
         # Selective Scan
-        selective_frame = ctk.CTkFrame(scan_options_frame, fg_color="transparent", height=90)
-        selective_frame.pack(fill="x", padx=15, pady=5)
-        selective_frame.pack_propagate(False)
+        selective_frame = ctk.CTkFrame(scan_options_frame, fg_color="transparent")
+        selective_frame.pack(fill="x", padx=10, pady=3)
 
         selective_radio = ctk.CTkRadioButton(selective_frame, text="Selective Scan", variable=self.scan_var,
-                                             value="Selective Scan", font=ctk.CTkFont(size=14),
+                                             value="Selective Scan", font=ctk.CTkFont(size=12),
                                              command=self.on_scan_type_change)
-        selective_radio.pack(anchor="w", pady=2)
+        selective_radio.pack(anchor="w")
 
         selective_desc = ctk.CTkLabel(selective_frame, text="Scan specific folders or files",
-                                      font=ctk.CTkFont(size=10), text_color="#64748b")
-        selective_desc.pack(anchor="w", padx=20)
+                                      font=ctk.CTkFont(size=9), text_color="#64748b")
+        selective_desc.pack(anchor="w", padx=15)
 
         # Browse button and path display for selective scan
         browse_frame = ctk.CTkFrame(selective_frame, fg_color="transparent")
-        browse_frame.pack(fill="x", padx=20, pady=(5, 0))
+        browse_frame.pack(fill="x", padx=15, pady=(3, 0))
+
+        browse_container = ctk.CTkFrame(browse_frame, fg_color="transparent")
+        browse_container.pack(fill="x")
 
         self.browse_button = ctk.CTkButton(
-            browse_frame,
-            text="Browse Location",
-            font=ctk.CTkFont(size=12),
-            width=120,
-            height=28,
+            browse_container,
+            text="Browse",
+            font=ctk.CTkFont(size=10),
+            width=80,
+            height=24,
             fg_color="#6366f1",
             hover_color="#4f46e5",
             command=self.browse_selective_location
         )
-        self.browse_button.pack(anchor="w")
+        self.browse_button.pack(side="left")
 
-        # Selected path display - Fixed height
-        path_display_frame = ctk.CTkFrame(browse_frame, fg_color="transparent", height=25)
-        path_display_frame.pack(fill="x", pady=(3, 0))
-        path_display_frame.pack_propagate(False)
-
-        self.selected_path_label = ctk.CTkLabel(path_display_frame, text="No location selected",
-                                                font=ctk.CTkFont(size=10),
+        self.selected_path_label = ctk.CTkLabel(browse_container, text="No location selected",
+                                                font=ctk.CTkFont(size=9),
                                                 text_color="#64748b",
-                                                wraplength=200,
                                                 anchor="w")
-        self.selected_path_label.pack(fill="x")
+        self.selected_path_label.pack(side="left", fill="x", expand=True, padx=(5, 0))
 
         # Full System Scan
-        full_frame = ctk.CTkFrame(scan_options_frame, fg_color="transparent", height=50)
-        full_frame.pack(fill="x", padx=15, pady=(5, 10))
-        full_frame.pack_propagate(False)
+        full_frame = ctk.CTkFrame(scan_options_frame, fg_color="transparent")
+        full_frame.pack(fill="x", padx=10, pady=(3, 8))
 
         full_radio = ctk.CTkRadioButton(full_frame, text="Full System Scan", variable=self.scan_var,
-                                        value="Full System Scan", font=ctk.CTkFont(size=14))
-        full_radio.pack(anchor="w", pady=2)
+                                        value="Full System Scan", font=ctk.CTkFont(size=12))
+        full_radio.pack(anchor="w")
 
         full_desc = ctk.CTkLabel(full_frame, text="Complete system scan (~30-60 minutes)",
-                                 font=ctk.CTkFont(size=10), text_color="#64748b")
-        full_desc.pack(anchor="w", padx=20)
+                                 font=ctk.CTkFont(size=9), text_color="#64748b")
+        full_desc.pack(anchor="w", padx=15)
 
         # Stop button
         self.stop_button = ctk.CTkButton(
             right_frame,
             text="STOP SCAN",
-            font=ctk.CTkFont(size=14, weight="bold"),
-            width=150,
-            height=40,
+            font=ctk.CTkFont(size=12, weight="bold"),
+            height=35,
             fg_color="#ef4444",
             hover_color="#dc2626",
             command=self.stop_scan,
             state="disabled"
         )
-        self.stop_button.pack(pady=(15, 20))
+        self.stop_button.grid(row=2, column=0, pady=(10, 15), padx=15, sticky="ew")
 
     def browse_selective_location(self):
         """Open file explorer to select scan location"""
         try:
-            # Open folder selection dialog
             folder_path = filedialog.askdirectory(
                 title="Select folder to scan",
-                initialdir=os.path.expanduser("~")  # Start in user's home directory
+                initialdir=os.path.expanduser("~")
             )
 
             if folder_path:
                 self.selected_scan_path = folder_path
-                # Display shortened path for better UI
-                if len(folder_path) > 30:
-                    display_path = "..." + folder_path[-27:]
+                if len(folder_path) > 25:
+                    display_path = "..." + folder_path[-22:]
                 else:
                     display_path = folder_path
                 self.selected_path_label.configure(text=display_path, text_color="#10b981")
@@ -247,190 +260,203 @@ class FixionDashboard:
 
     def create_health_section(self, parent):
         health_container = ctk.CTkFrame(parent, fg_color="transparent")
-        health_container.pack(fill="x", pady=(0, 20))
+        health_container.grid(row=1, column=0, sticky="ew", padx=5, pady=(0, 10))
+        health_container.grid_columnconfigure(0, weight=1)
+        health_container.grid_columnconfigure(1, weight=1)
 
         # System Health
         system_frame = ctk.CTkFrame(health_container, fg_color="#16213e", border_width=2, border_color="#0f3460")
-        system_frame.pack(side="left", fill="both", expand=True, padx=(0, 10))
+        system_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 5))
+        system_frame.grid_columnconfigure(0, weight=1)
 
-        system_title = ctk.CTkLabel(system_frame, text="System Health", font=ctk.CTkFont(size=18, weight="bold"),
+        system_title = ctk.CTkLabel(system_frame, text="System Health", font=ctk.CTkFont(size=16, weight="bold"),
                                     text_color="#ffffff")
-        system_title.pack(pady=(15, 10))
+        system_title.grid(row=0, column=0, pady=(12, 8))
 
         # System metrics container
         metrics_container = ctk.CTkFrame(system_frame, fg_color="transparent")
-        metrics_container.pack(fill="both", expand=True, padx=20, pady=(0, 20))
+        metrics_container.grid(row=1, column=0, sticky="ew", padx=15, pady=(0, 15))
+        metrics_container.grid_columnconfigure(0, weight=1)
+        metrics_container.grid_columnconfigure(1, weight=1)
+        metrics_container.grid_columnconfigure(2, weight=1)
 
         # CPU Usage
-        cpu_frame = ctk.CTkFrame(metrics_container, fg_color="#0f3460", corner_radius=10)
-        cpu_frame.pack(side="left", fill="both", expand=True, padx=(0, 5))
+        cpu_frame = ctk.CTkFrame(metrics_container, fg_color="#0f3460", corner_radius=8)
+        cpu_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 2))
 
-        ctk.CTkLabel(cpu_frame, text="CPU Usage", font=ctk.CTkFont(size=12, weight="bold")).pack(pady=(10, 5))
-        self.cpu_progress = ctk.CTkProgressBar(cpu_frame, width=100, height=15, progress_color="#f59e0b")
-        self.cpu_progress.pack(pady=(0, 5))
-        self.cpu_label = ctk.CTkLabel(cpu_frame, text="45%", font=ctk.CTkFont(size=14, weight="bold"),
+        ctk.CTkLabel(cpu_frame, text="CPU Usage", font=ctk.CTkFont(size=10, weight="bold")).pack(pady=(8, 4))
+        self.cpu_progress = ctk.CTkProgressBar(cpu_frame, width=80, height=12, progress_color="#f59e0b")
+        self.cpu_progress.pack(pady=(0, 4))
+        self.cpu_label = ctk.CTkLabel(cpu_frame, text="45%", font=ctk.CTkFont(size=12, weight="bold"),
                                       text_color="#f59e0b")
-        self.cpu_label.pack(pady=(0, 10))
+        self.cpu_label.pack(pady=(0, 8))
 
         # Memory Usage
-        mem_frame = ctk.CTkFrame(metrics_container, fg_color="#0f3460", corner_radius=10)
-        mem_frame.pack(side="left", fill="both", expand=True, padx=5)
+        mem_frame = ctk.CTkFrame(metrics_container, fg_color="#0f3460", corner_radius=8)
+        mem_frame.grid(row=0, column=1, sticky="nsew", padx=2)
 
-        ctk.CTkLabel(mem_frame, text="Memory Usage", font=ctk.CTkFont(size=12, weight="bold")).pack(pady=(10, 5))
-        self.mem_progress = ctk.CTkProgressBar(mem_frame, width=100, height=15, progress_color="#3b82f6")
-        self.mem_progress.pack(pady=(0, 5))
-        self.mem_label = ctk.CTkLabel(mem_frame, text="68%", font=ctk.CTkFont(size=14, weight="bold"),
+        ctk.CTkLabel(mem_frame, text="Memory Usage", font=ctk.CTkFont(size=10, weight="bold")).pack(pady=(8, 4))
+        self.mem_progress = ctk.CTkProgressBar(mem_frame, width=80, height=12, progress_color="#3b82f6")
+        self.mem_progress.pack(pady=(0, 4))
+        self.mem_label = ctk.CTkLabel(mem_frame, text="68%", font=ctk.CTkFont(size=12, weight="bold"),
                                       text_color="#3b82f6")
-        self.mem_label.pack(pady=(0, 10))
+        self.mem_label.pack(pady=(0, 8))
 
         # Threat Level
-        threat_frame = ctk.CTkFrame(metrics_container, fg_color="#0f3460", corner_radius=10)
-        threat_frame.pack(side="right", fill="both", expand=True, padx=(5, 0))
+        threat_frame = ctk.CTkFrame(metrics_container, fg_color="#0f3460", corner_radius=8)
+        threat_frame.grid(row=0, column=2, sticky="nsew", padx=(2, 0))
 
-        ctk.CTkLabel(threat_frame, text="Threat Level", font=ctk.CTkFont(size=12, weight="bold")).pack(pady=(10, 5))
-        self.threat_progress = ctk.CTkProgressBar(threat_frame, width=100, height=15, progress_color="#10b981")
-        self.threat_progress.pack(pady=(0, 5))
-        self.threat_label = ctk.CTkLabel(threat_frame, text="Low", font=ctk.CTkFont(size=14, weight="bold"),
+        ctk.CTkLabel(threat_frame, text="Threat Level", font=ctk.CTkFont(size=10, weight="bold")).pack(pady=(8, 4))
+        self.threat_progress = ctk.CTkProgressBar(threat_frame, width=80, height=12, progress_color="#10b981")
+        self.threat_progress.pack(pady=(0, 4))
+        self.threat_label = ctk.CTkLabel(threat_frame, text="Low", font=ctk.CTkFont(size=12, weight="bold"),
                                          text_color="#10b981")
-        self.threat_label.pack(pady=(0, 10))
+        self.threat_label.pack(pady=(0, 8))
 
         # Network Health
         network_frame = ctk.CTkFrame(health_container, fg_color="#16213e", border_width=2, border_color="#0f3460")
-        network_frame.pack(side="right", fill="both", expand=True, padx=(10, 0))
+        network_frame.grid(row=0, column=1, sticky="nsew", padx=(5, 0))
+        network_frame.grid_columnconfigure(0, weight=1)
 
-        network_title = ctk.CTkLabel(network_frame, text="Network Health", font=ctk.CTkFont(size=18, weight="bold"),
+        network_title = ctk.CTkLabel(network_frame, text="Network Health", font=ctk.CTkFont(size=16, weight="bold"),
                                      text_color="#ffffff")
-        network_title.pack(pady=(15, 10))
+        network_title.grid(row=0, column=0, pady=(12, 8))
 
         # Network metrics
         net_metrics_container = ctk.CTkFrame(network_frame, fg_color="transparent")
-        net_metrics_container.pack(fill="both", expand=True, padx=20, pady=(0, 20))
+        net_metrics_container.grid(row=1, column=0, sticky="ew", padx=15, pady=(0, 15))
+        net_metrics_container.grid_columnconfigure(0, weight=1)
+        net_metrics_container.grid_columnconfigure(1, weight=1)
+        net_metrics_container.grid_columnconfigure(2, weight=1)
 
         # Inbound
-        inbound_frame = ctk.CTkFrame(net_metrics_container, fg_color="#0f3460", corner_radius=10)
-        inbound_frame.pack(side="left", fill="both", expand=True, padx=(0, 5))
+        inbound_frame = ctk.CTkFrame(net_metrics_container, fg_color="#0f3460", corner_radius=8)
+        inbound_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 2))
 
-        ctk.CTkLabel(inbound_frame, text="Inbound", font=ctk.CTkFont(size=12, weight="bold")).pack(pady=(10, 5))
-        self.inbound_label = ctk.CTkLabel(inbound_frame, text="2.4 MB/s", font=ctk.CTkFont(size=14, weight="bold"),
+        ctk.CTkLabel(inbound_frame, text="Inbound", font=ctk.CTkFont(size=10, weight="bold")).pack(pady=(8, 4))
+        self.inbound_label = ctk.CTkLabel(inbound_frame, text="2.4 MB/s", font=ctk.CTkFont(size=11, weight="bold"),
                                           text_color="#10b981")
-        self.inbound_label.pack(pady=(0, 10))
+        self.inbound_label.pack(pady=(0, 8))
 
         # Outbound
-        outbound_frame = ctk.CTkFrame(net_metrics_container, fg_color="#0f3460", corner_radius=10)
-        outbound_frame.pack(side="left", fill="both", expand=True, padx=5)
+        outbound_frame = ctk.CTkFrame(net_metrics_container, fg_color="#0f3460", corner_radius=8)
+        outbound_frame.grid(row=0, column=1, sticky="nsew", padx=2)
 
-        ctk.CTkLabel(outbound_frame, text="Outbound", font=ctk.CTkFont(size=12, weight="bold")).pack(pady=(10, 5))
-        self.outbound_label = ctk.CTkLabel(outbound_frame, text="1.8 MB/s", font=ctk.CTkFont(size=14, weight="bold"),
+        ctk.CTkLabel(outbound_frame, text="Outbound", font=ctk.CTkFont(size=10, weight="bold")).pack(pady=(8, 4))
+        self.outbound_label = ctk.CTkLabel(outbound_frame, text="1.8 MB/s", font=ctk.CTkFont(size=11, weight="bold"),
                                            text_color="#3b82f6")
-        self.outbound_label.pack(pady=(0, 10))
+        self.outbound_label.pack(pady=(0, 8))
 
         # Suspicious IPs
-        suspicious_frame = ctk.CTkFrame(net_metrics_container, fg_color="#0f3460", corner_radius=10)
-        suspicious_frame.pack(side="right", fill="both", expand=True, padx=(5, 0))
+        suspicious_frame = ctk.CTkFrame(net_metrics_container, fg_color="#0f3460", corner_radius=8)
+        suspicious_frame.grid(row=0, column=2, sticky="nsew", padx=(2, 0))
 
-        ctk.CTkLabel(suspicious_frame, text="Suspicious IP's", font=ctk.CTkFont(size=12, weight="bold")).pack(
-            pady=(10, 5))
+        ctk.CTkLabel(suspicious_frame, text="Suspicious IP's", font=ctk.CTkFont(size=10, weight="bold")).pack(
+            pady=(8, 4))
         self.suspicious_label = ctk.CTkLabel(suspicious_frame, text="3 Blocked",
-                                             font=ctk.CTkFont(size=14, weight="bold"), text_color="#ef4444")
-        self.suspicious_label.pack(pady=(0, 10))
+                                             font=ctk.CTkFont(size=11, weight="bold"), text_color="#ef4444")
+        self.suspicious_label.pack(pady=(0, 8))
 
     def create_bottom_section(self, parent):
         bottom_container = ctk.CTkFrame(parent, fg_color="transparent")
-        bottom_container.pack(fill="both", expand=True)
+        bottom_container.grid(row=2, column=0, sticky="ew", padx=5)
+        bottom_container.grid_columnconfigure(0, weight=1)
+        bottom_container.grid_columnconfigure(1, weight=1)
 
         # Active Threats
         threats_frame = ctk.CTkFrame(bottom_container, fg_color="#16213e", border_width=2, border_color="#0f3460")
-        threats_frame.pack(side="left", fill="both", expand=True, padx=(0, 10))
+        threats_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 5))
+        threats_frame.grid_columnconfigure(0, weight=1)
+        threats_frame.grid_rowconfigure(1, weight=1)
 
-        threats_title = ctk.CTkLabel(threats_frame, text="Active Threats", font=ctk.CTkFont(size=18, weight="bold"),
+        threats_title = ctk.CTkLabel(threats_frame, text="Active Threats", font=ctk.CTkFont(size=16, weight="bold"),
                                      text_color="#ffffff")
-        threats_title.pack(pady=(15, 10))
+        threats_title.grid(row=0, column=0, pady=(12, 8))
 
-        # Threats list
-        threats_container = ctk.CTkScrollableFrame(threats_frame, fg_color="#0f3460")
-        threats_container.pack(fill="both", expand=True, padx=20, pady=(0, 20))
+        # Threats list with scrollable frame
+        threats_container = ctk.CTkScrollableFrame(threats_frame, fg_color="#0f3460", height=200)
+        threats_container.grid(row=1, column=0, sticky="nsew", padx=15, pady=(0, 15))
 
         for threat in self.threats:
-            threat_item = ctk.CTkFrame(threats_container, fg_color="#1e293b", corner_radius=8)
-            threat_item.pack(fill="x", pady=5)
+            threat_item = ctk.CTkFrame(threats_container, fg_color="#1e293b", corner_radius=6)
+            threat_item.pack(fill="x", pady=3)
 
             # Threat info
             info_frame = ctk.CTkFrame(threat_item, fg_color="transparent")
-            info_frame.pack(fill="x", padx=15, pady=10)
+            info_frame.pack(fill="x", padx=12, pady=8)
 
-            name_label = ctk.CTkLabel(info_frame, text=threat["name"], font=ctk.CTkFont(size=12, weight="bold"),
+            name_label = ctk.CTkLabel(info_frame, text=threat["name"], font=ctk.CTkFont(size=11, weight="bold"),
                                       anchor="w")
             name_label.pack(fill="x")
 
             status_color = {"Quarantined": "#f59e0b", "Removed": "#10b981", "Detected": "#ef4444"}
             status_label = ctk.CTkLabel(info_frame, text=f"Status: {threat['status']}",
-                                        font=ctk.CTkFont(size=11),
+                                        font=ctk.CTkFont(size=10),
                                         text_color=status_color.get(threat["status"], "#94a3b8"),
                                         anchor="w")
             status_label.pack(fill="x")
 
             severity_label = ctk.CTkLabel(info_frame, text=f"Severity: {threat['severity']}",
-                                          font=ctk.CTkFont(size=11),
+                                          font=ctk.CTkFont(size=10),
                                           text_color="#64748b",
                                           anchor="w")
             severity_label.pack(fill="x")
 
         # Request Rollback
         rollback_frame = ctk.CTkFrame(bottom_container, fg_color="#16213e", border_width=2, border_color="#0f3460")
-        rollback_frame.pack(side="right", fill="both", expand=True, padx=(10, 0))
+        rollback_frame.grid(row=0, column=1, sticky="nsew", padx=(5, 0))
+        rollback_frame.grid_columnconfigure(0, weight=1)
 
-        rollback_title = ctk.CTkLabel(rollback_frame, text="System Rollback", font=ctk.CTkFont(size=18, weight="bold"),
+        rollback_title = ctk.CTkLabel(rollback_frame, text="System Rollback", font=ctk.CTkFont(size=16, weight="bold"),
                                       text_color="#ffffff")
-        rollback_title.pack(pady=(15, 10))
+        rollback_title.grid(row=0, column=0, pady=(12, 8))
 
         # Rollback options
-        rollback_container = ctk.CTkFrame(rollback_frame, fg_color="#0f3460", corner_radius=15)
-        rollback_container.pack(fill="both", expand=True, padx=20, pady=(0, 20))
+        rollback_container = ctk.CTkFrame(rollback_frame, fg_color="#0f3460", corner_radius=12)
+        rollback_container.grid(row=1, column=0, sticky="ew", padx=15, pady=(0, 15))
+        rollback_container.grid_columnconfigure(0, weight=1)
 
         # Last backup info
-        backup_info = ctk.CTkLabel(rollback_container, text="Last Backup:", font=ctk.CTkFont(size=12, weight="bold"))
-        backup_info.pack(pady=(20, 5))
+        backup_info = ctk.CTkLabel(rollback_container, text="Last Backup:", font=ctk.CTkFont(size=11, weight="bold"))
+        backup_info.grid(row=0, column=0, pady=(15, 3))
 
-        backup_date = ctk.CTkLabel(rollback_container, text="May 25, 2025 - 14:30", font=ctk.CTkFont(size=11),
+        backup_date = ctk.CTkLabel(rollback_container, text="May 25, 2025 - 14:30", font=ctk.CTkFont(size=10),
                                    text_color="#94a3b8")
-        backup_date.pack(pady=(0, 15))
+        backup_date.grid(row=1, column=0, pady=(0, 12))
 
         # Rollback buttons
         rollback_now_btn = ctk.CTkButton(
             rollback_container,
             text="Rollback Now",
-            font=ctk.CTkFont(size=14, weight="bold"),
-            width=150,
-            height=40,
+            font=ctk.CTkFont(size=12, weight="bold"),
+            height=32,
             fg_color="#ef4444",
             hover_color="#dc2626",
             command=self.rollback_now
         )
-        rollback_now_btn.pack(pady=5)
+        rollback_now_btn.grid(row=2, column=0, pady=3, padx=20, sticky="ew")
 
         schedule_btn = ctk.CTkButton(
             rollback_container,
             text="Schedule Rollback",
-            font=ctk.CTkFont(size=14, weight="bold"),
-            width=150,
-            height=40,
+            font=ctk.CTkFont(size=12, weight="bold"),
+            height=32,
             fg_color="#f59e0b",
             hover_color="#d97706",
             command=self.schedule_rollback
         )
-        schedule_btn.pack(pady=5)
+        schedule_btn.grid(row=3, column=0, pady=3, padx=20, sticky="ew")
 
         request_btn = ctk.CTkButton(
             rollback_container,
             text="Request Rollback",
-            font=ctk.CTkFont(size=14, weight="bold"),
-            width=150,
-            height=40,
+            font=ctk.CTkFont(size=12, weight="bold"),
+            height=32,
             fg_color="#3b82f6",
             hover_color="#2563eb",
             command=self.request_rollback
         )
-        request_btn.pack(pady=5)
+        request_btn.grid(row=4, column=0, pady=(3, 15), padx=20, sticky="ew")
 
     def start_scan(self):
         if not self.scanning:
