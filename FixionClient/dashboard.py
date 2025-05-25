@@ -9,6 +9,7 @@ import time
 import random
 from datetime import datetime, timedelta
 import os
+from ai_scanner import AIAntivirusScanner
 
 # Set appearance mode and color theme
 ctk.set_appearance_mode("dark")
@@ -31,6 +32,13 @@ class FixionDashboard:
         self.scan_type = "Quick Scan"
         self.selected_scan_path = ""
         self.scan_threats_found = []
+        self.scanner = AIAntivirusScanner()
+        self.scanner.set_callbacks(
+            file_scanned_callback=self.on_file_scanned,
+            progress_callback=self.on_scan_progress,
+            status_callback=self.on_status_update,
+            result_callback=self.on_scan_result
+        )
 
         # Sample data
         self.threats = [
@@ -214,6 +222,30 @@ class FixionDashboard:
             state="disabled"
         )
         self.stop_button.pack(pady=(15, 20))
+
+    def on_file_scanned(self, file_path, result):
+        self.root.after(0, lambda: self._update_file_scanned(file_path, result))
+
+    def _update_file_scanned(self, file_path, result):
+        self.scan_threats_found.append(result)
+        self.update_scan_ui()
+
+    def on_scan_progress(self, current, total, current_file):
+        self.root.after(0, lambda: self._update_progress(current, total, current_file))
+
+    def _update_progress(self, current, total, current_file):
+        self.files_scanned = current
+        self.total_files = total
+        self.current_file = current_file
+        self.scan_progress = current / total if total else 0
+        self.update_scan_ui()
+
+    def on_status_update(self, message):
+        print(f"Scanner Status: {message}")  # Optional: Display in UI or console
+
+    def on_scan_result(self, result):
+        # You can extend this to display popups for threats
+        pass
 
     def browse_selective_location(self):
         """Open file explorer to select scan location"""
@@ -434,7 +466,6 @@ class FixionDashboard:
 
     def start_scan(self):
         if not self.scanning:
-            # Check if selective scan requires a path
             if self.scan_var.get() == "Selective Scan" and not self.selected_scan_path:
                 self.show_error_dialog("Please select a location to scan for Selective Scan.")
                 return
@@ -443,86 +474,27 @@ class FixionDashboard:
             self.scan_type = self.scan_var.get()
             self.scan_button.configure(state="disabled", text="SCANNING...")
             self.stop_button.configure(state="normal")
-
-            # Clear previous scan results
             self.scan_threats_found = []
 
-            # Start scan in separate thread
-            scan_thread = threading.Thread(target=self.run_scan)
-            scan_thread.daemon = True
-            scan_thread.start()
+            # Start scan in a new thread
+            threading.Thread(target=self.run_real_scan, daemon=True).start()
 
-    def run_scan(self):
-        # Simulate different scan types with different file counts
-        scan_files = {
-            "Quick Scan": 1500,
-            "Selective Scan": 500,  # Smaller scope for selective
-            "Full System Scan": 15000
-        }
+    def run_real_scan(self):
+        def scanning_task():
+            if self.scan_type == "Quick Scan":
+                results = self.scanner.quick_scan()
+            elif self.scan_type == "Full System Scan":
+                results = self.scanner.full_scan()
+            elif self.scan_type == "Selective Scan":
+                results = self.scanner.selective_scan([self.selected_scan_path])
+            else:
+                results = []
 
-        self.total_files = scan_files.get(self.scan_type, 1500)
-        self.files_scanned = 0
-
-        # Different file samples based on scan type
-        if self.scan_type == "Selective Scan" and self.selected_scan_path:
-            # Use selected path for selective scan
-            base_path = self.selected_scan_path.replace("/", "\\")
-            sample_files = [
-                f"{base_path}\\document1.pdf",
-                f"{base_path}\\image.jpg",
-                f"{base_path}\\setup.exe",
-                f"{base_path}\\data.xlsx",
-                f"{base_path}\\readme.txt",
-                f"{base_path}\\config.ini",
-                f"{base_path}\\backup.zip",
-                f"{base_path}\\report.docx",
-            ]
-        else:
-            sample_files = [
-                "C:\\Windows\\System32\\kernel32.dll",
-                "C:\\Program Files\\Common Files\\microsoft.exe",
-                "C:\\Users\\Documents\\report.pdf",
-                "C:\\Windows\\Temp\\cache.tmp",
-                "C:\\Program Files\\Adobe\\acrobat.exe",
-                "C:\\Users\\Downloads\\setup.exe",
-                "C:\\Windows\\System32\\drivers\\ntfs.sys",
-                "C:\\Program Files\\Microsoft Office\\winword.exe",
-                "C:\\Users\\AppData\\Local\\temp\\data.bin",
-                "C:\\Windows\\explorer.exe"
-            ]
-
-        # Simulate threat detection (random chance)
-        threat_chance = 0.15  # 15% chance of finding threats
-
-        while self.scanning and self.files_scanned < self.total_files:
-            # Simulate scanning delay
-            time.sleep(0.01)
-
-            self.files_scanned += random.randint(1, 5)
-            if self.files_scanned > self.total_files:
-                self.files_scanned = self.total_files
-
-            self.scan_progress = self.files_scanned / self.total_files
-            self.current_file = random.choice(sample_files)
-
-            # Randomly detect threats during scan
-            if random.random() < threat_chance and len(self.scan_threats_found) < 3:
-                potential_threats = [
-                    {"name": "Malware.Generic.Suspicious", "severity": "Medium", "file": self.current_file},
-                    {"name": "Trojan.Downloader.Small", "severity": "High", "file": self.current_file},
-                    {"name": "Adware.Popup.Agent", "severity": "Low", "file": self.current_file},
-                    {"name": "PUP.Optional.Toolbar", "severity": "Low", "file": self.current_file},
-                    {"name": "Spyware.KeyLogger.Gen", "severity": "High", "file": self.current_file}
-                ]
-                threat = random.choice(potential_threats)
-                if threat not in self.scan_threats_found:
-                    self.scan_threats_found.append(threat)
-
-            # Update UI
-            self.root.after(0, self.update_scan_ui)
-
-        if self.scanning:  # Scan completed normally
+            # When scan completes, update UI in main thread
             self.root.after(0, self.scan_complete)
+
+        # Start the scanning task in a separate thread
+        threading.Thread(target=scanning_task, daemon=True).start()
 
     def update_scan_ui(self):
         self.progress_bar.set(self.scan_progress)
@@ -548,6 +520,7 @@ class FixionDashboard:
         self.show_scan_results()
 
     def stop_scan(self):
+        self.scanner.stop_scan()
         self.scanning = False
         self.scan_button.configure(state="normal", text="SCAN")
         self.stop_button.configure(state="disabled")
