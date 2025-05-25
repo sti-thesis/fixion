@@ -77,342 +77,285 @@ def get_client_machines():
     return [user for user in users if user.get("role") == "client machine"]
 
 
-def open_analytics_page(parent_frame):
-    """
-    Analytics dashboard page with charts and statistics
-    """
-    # Clear the frame first
-    for widget in parent_frame.winfo_children():
-        widget.destroy()
+def create_stats_card(parent, title, value, icon_name, row, column):
+    """Create a single statistics card"""
+    card = customtkinter.CTkFrame(parent, corner_radius=10)
+    card.grid(row=row, column=column, padx=10, pady=10, sticky="nsew")
 
-    # Page title
-    title = customtkinter.CTkLabel(
-        master=parent_frame,
-        text="Analytics Dashboard",
-        font=("Arial", 24, "bold")
-    )
-    title.pack(pady=20, anchor="w", padx=20)
+    # Try to load icon
+    try:
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        icon_path = os.path.join(current_dir, "assets", "icon", icon_name)
 
-    # Create a scrollable main content frame
-    main_content = customtkinter.CTkScrollableFrame(
-        master=parent_frame,
-        width=950,
-        height=800
-    )
-    main_content.pack(fill="both", expand=True, padx=20, pady=10)
-
-    # ======= TOP STATS SECTION =======
-    stats_frame = customtkinter.CTkFrame(master=main_content)
-    stats_frame.pack(fill="x", padx=10, pady=10)
-
-    # Create a grid of stats cards
-    grid_frame = customtkinter.CTkFrame(master=stats_frame, fg_color="transparent")
-    grid_frame.pack(fill="x", padx=20, pady=20)
-
-    # Define the statistics cards
-    stats_cards = [
-        {"title": "Total Threats Detected", "value": str(random.randint(120, 300)), "icon": "threat_logs_icon.png"},
-        {"title": "Active Clients", "value": str(len(get_client_machines())), "icon": "client_machine_icon.png"},
-        {"title": "Resolved Threats", "value": str(random.randint(100, 250)), "icon": "systems_icon.png"},
-        {"title": "Critical Alerts", "value": str(random.randint(5, 20)), "icon": "analytics_icon.png"}
-    ]
-
-    # Create and place stat cards in a grid
-    for i, card in enumerate(stats_cards):
-        col = i % 4
-        row = i // 4
-
-        # Create a frame for each card
-        card_frame = customtkinter.CTkFrame(master=grid_frame, corner_radius=10)
-        card_frame.grid(row=row, column=col, padx=10, pady=10, sticky="nsew")
-
-        # Try to load icon - fallback to text if icon not found
-        try:
-            # Get assets path - similar to dashboard_page.py
-            current_dir = os.path.dirname(os.path.abspath(__file__))
-            icon_path = os.path.join(current_dir, "assets", "icon", card["icon"])
-
-            icon_image = customtkinter.CTkImage(
-                light_image=Image.open(icon_path),
-                dark_image=Image.open(icon_path),
-                size=(32, 32)
-            )
-
-            icon_label = customtkinter.CTkLabel(
-                master=card_frame,
-                image=icon_image,
-                text=""
-            )
-            icon_label.pack(anchor="w", padx=15, pady=(15, 5))
-        except Exception as e:
-            # If icon loading fails, just skip it
-            pass
-
-        # Card title
-        card_title = customtkinter.CTkLabel(
-            master=card_frame,
-            text=card["title"],
-            font=("Arial", 14)
+        icon_image = customtkinter.CTkImage(
+            light_image=Image.open(icon_path),
+            dark_image=Image.open(icon_path),
+            size=(32, 32)
         )
-        card_title.pack(anchor="w", padx=15, pady=5)
 
-        # Card value
-        card_value = customtkinter.CTkLabel(
-            master=card_frame,
-            text=card["value"],
-            font=("Arial", 24, "bold")
-        )
-        card_value.pack(anchor="w", padx=15, pady=(5, 15))
+        icon_label = customtkinter.CTkLabel(card, image=icon_image, text="")
+        icon_label.pack(anchor="w", padx=15, pady=(15, 5))
+    except Exception:
+        pass
 
-    # Configure grid column widths to be equal
-    for i in range(4):
-        grid_frame.grid_columnconfigure(i, weight=1)
+    # Card content
+    customtkinter.CTkLabel(card, text=title, font=("Arial", 14)).pack(anchor="w", padx=15, pady=5)
+    customtkinter.CTkLabel(card, text=value, font=("Arial", 24, "bold")).pack(anchor="w", padx=15, pady=(5, 15))
 
-    # ======= THREAT DETECTION CHART =======
-    chart_frame = customtkinter.CTkFrame(master=main_content)
-    chart_frame.pack(fill="x", padx=10, pady=10)
 
-    chart_title = customtkinter.CTkLabel(
-        master=chart_frame,
-        text="Threat Detection Trend (30 Days)",
-        font=("Arial", 16, "bold")
-    )
-    chart_title.pack(anchor="w", padx=20, pady=10)
-
-    # Use a standard ttk.Frame for embedding the chart
-    # We'll create a simple bar chart representation for now
-    chart_canvas_frame = tk.Frame(master=chart_frame, bg="#1c253a")
-    chart_canvas_frame.pack(fill="both", padx=20, pady=10, ipady=150)  # Fixed height
-
-    # Generate mock data for last 30 days
-    threat_data = generate_mock_threat_data(30)
-
+def create_threat_chart(parent, threat_data):
+    """Create threat detection trend chart"""
     # Count threats by date
     threat_counts = {}
     for threat in threat_data:
         date = threat["date"]
-        if date in threat_counts:
-            threat_counts[date] += 1
-        else:
-            threat_counts[date] = 1
+        threat_counts[date] = threat_counts.get(date, 0) + 1
 
-    # Sort dates and create chart data
+    # Sort dates and prepare chart data
     sorted_dates = sorted(threat_counts.keys())
-
-    # Only use every 5th date for labels to avoid crowding
     chart_dates = [date if i % 5 == 0 else "" for i, date in enumerate(sorted_dates)]
     chart_values = [threat_counts[date] for date in sorted_dates]
-
-    # Calculate max value for scaling
     max_value = max(chart_values) if chart_values else 10
 
-    # Draw simple bar chart using Canvas
-    chart_canvas = tk.Canvas(chart_canvas_frame, bg="#1c253a", highlightthickness=0)
-    chart_canvas.pack(fill="both", expand=True)
+    # Create chart canvas
+    chart_canvas = tk.Canvas(parent, bg="#1c253a", highlightthickness=0, height=150)
+    chart_canvas.pack(fill="x", padx=20, pady=10)
 
-    # Chart dimensions
-    chart_width = 900
-    chart_height = 150
-    bar_spacing = chart_width / (len(chart_values) * 1.5)
-    bottom_margin = 30
-
-    # Function to draw the chart
     def draw_chart():
         chart_canvas.delete("all")
+        chart_width = chart_canvas.winfo_width() or 900
+        chart_height = 150
+        bar_spacing = chart_width / (len(chart_values) * 1.5) if chart_values else 1
+        bottom_margin = 30
 
-        # Draw X and Y axes
+        # Draw axes
         chart_canvas.create_line(40, chart_height - bottom_margin, chart_width - 20,
                                  chart_height - bottom_margin, fill="#a9b8c4", width=2)
         chart_canvas.create_line(40, 20, 40, chart_height - bottom_margin, fill="#a9b8c4", width=2)
 
         # Draw bars
         for i, value in enumerate(chart_values):
-            # Bar height scaled to max value
             bar_height = (value / max_value) * (chart_height - bottom_margin - 30)
-
-            # Bar position
             x1 = 50 + (i * bar_spacing * 1.5)
             y1 = chart_height - bottom_margin - bar_height
             x2 = x1 + bar_spacing
             y2 = chart_height - bottom_margin
 
-            # Draw bar with gradient color based on value
             color = f"#{int(min(255, 100 + (155 * value / max_value))):02x}4080"
             chart_canvas.create_rectangle(x1, y1, x2, y2, fill=color, outline="")
 
-            # Add date label every 5th bar
+            # Add date labels
             if chart_dates[i]:
                 chart_canvas.create_text(x1 + bar_spacing / 2, chart_height - bottom_margin + 15,
                                          text=chart_dates[i][5:], fill="#a9b8c4", font=("Arial", 8))
 
-        # Add Y-axis labels
+        # Y-axis labels
         for i in range(5):
             value = int(max_value * i / 4)
             y_pos = chart_height - bottom_margin - (i * (chart_height - bottom_margin - 30) / 4)
             chart_canvas.create_text(30, y_pos, text=str(value), fill="#a9b8c4", font=("Arial", 8))
 
-    draw_chart()
+    chart_canvas.bind("<Configure>", lambda e: draw_chart())
+    chart_canvas.after(100, draw_chart)  # Initial draw
 
-    # Configure resize behavior
-    def on_resize(event):
-        nonlocal chart_width
-        chart_width = event.width - 20
-        nonlocal bar_spacing
-        bar_spacing = chart_width / (len(chart_values) * 1.5)
-        draw_chart()
 
-    chart_canvas.bind("<Configure>", on_resize)
-
-    # ======= CLIENT ACTIVITY SECTION =======
-    clients_frame = customtkinter.CTkFrame(master=main_content)
-    clients_frame.pack(fill="x", padx=10, pady=10)
-
-    clients_title = customtkinter.CTkLabel(
-        master=clients_frame,
-        text="Client Machine Activity",
-        font=("Arial", 16, "bold")
-    )
-    clients_title.pack(anchor="w", padx=20, pady=10)
-
-    # Create a table for client activity
-    table_frame = customtkinter.CTkFrame(master=clients_frame)
-    table_frame.pack(fill="x", padx=20, pady=10)
-
-    # Get actual client machines
-    clients = get_client_machines()
-
-    # If no clients found, show a message
+def create_client_table(parent, clients):
+    """Create client activity table"""
     if not clients:
-        no_clients_label = customtkinter.CTkLabel(
-            master=table_frame,
-            text="No client machines found. Add clients in User Management.",
-            font=("Arial", 12)
-        )
-        no_clients_label.pack(pady=20)
-    else:
-        # Table headers
-        header_frame = customtkinter.CTkFrame(master=table_frame, fg_color="#323b50")
-        header_frame.pack(fill="x", pady=(0, 2))
+        customtkinter.CTkLabel(parent, text="No client machines found. Add clients in User Management.",
+                               font=("Arial", 12)).pack(pady=20)
+        return
 
-        headers = ["Client Name", "Status", "Last Active", "Threats Detected", "Protection Status"]
+    # Table headers
+    header_frame = customtkinter.CTkFrame(parent, fg_color="#323b50")
+    header_frame.pack(fill="x", pady=(0, 2))
 
-        for i, header in enumerate(headers):
-            header_label = customtkinter.CTkLabel(
-                master=header_frame,
-                text=header,
-                font=("Arial", 12, "bold")
-            )
-            header_label.grid(row=0, column=i, padx=15, pady=10, sticky="w")
-            header_frame.grid_columnconfigure(i, weight=1)
+    headers = ["Client Name", "Status", "Last Active", "Threats Detected", "Protection Status"]
+    for i, header in enumerate(headers):
+        customtkinter.CTkLabel(header_frame, text=header, font=("Arial", 12, "bold")).grid(
+            row=0, column=i, padx=15, pady=10, sticky="w")
+        header_frame.grid_columnconfigure(i, weight=1)
 
-        # Table rows
-        for i, client in enumerate(clients):
-            row_frame = customtkinter.CTkFrame(master=table_frame)
-            row_frame.pack(fill="x", pady=1)
+    # Table rows
+    for client in clients:
+        row_frame = customtkinter.CTkFrame(parent)
+        row_frame.pack(fill="x", pady=1)
 
-            # Client name
-            name_label = customtkinter.CTkLabel(
-                master=row_frame,
-                text=client.get("username", "Unknown"),
-                font=("Arial", 12)
-            )
-            name_label.grid(row=0, column=0, padx=15, pady=10, sticky="w")
+        # Client name
+        customtkinter.CTkLabel(row_frame, text=client.get("username", "Unknown"),
+                               font=("Arial", 12)).grid(row=0, column=0, padx=15, pady=10, sticky="w")
 
-            # Status
-            status_text = "Online" if client.get("active", True) else "Offline"
-            status_color = "#1b720f" if client.get("active", True) else "#63003d"
+        # Status with indicator
+        status_text = "Online" if client.get("active", True) else "Offline"
+        status_color = "#1b720f" if client.get("active", True) else "#63003d"
 
-            status_frame = customtkinter.CTkFrame(master=row_frame, fg_color="transparent")
-            status_frame.grid(row=0, column=1, padx=15, pady=10, sticky="w")
+        status_container = customtkinter.CTkFrame(row_frame, fg_color="transparent")
+        status_container.grid(row=0, column=1, padx=15, pady=10, sticky="w")
 
-            status_indicator = customtkinter.CTkFrame(
-                master=status_frame,
-                width=12,
-                height=12,
-                corner_radius=6,
-                fg_color=status_color
-            )
-            status_indicator.pack(side="left", padx=(0, 5))
+        # Status indicator dot
+        customtkinter.CTkFrame(status_container, width=12, height=12, corner_radius=6,
+                               fg_color=status_color).pack(side="left", padx=(0, 5))
+        customtkinter.CTkLabel(status_container, text=status_text, font=("Arial", 12)).pack(side="left")
 
-            status_label = customtkinter.CTkLabel(
-                master=status_frame,
-                text=status_text,
-                font=("Arial", 12)
-            )
-            status_label.pack(side="left")
-
-            # Last active - random recent time
-            last_active = datetime.now() - timedelta(
-                minutes=0 if client.get("active", True) else random.randint(60, 10080)
-            )
-
-            if client.get("active", True):
-                last_active_text = "Now"
-            elif (datetime.now() - last_active).days > 0:
-                last_active_text = f"{(datetime.now() - last_active).days} days ago"
+        # Last active
+        if client.get("active", True):
+            last_active_text = "Now"
+        else:
+            minutes_ago = random.randint(60, 10080)
+            if minutes_ago > 1440:  # More than 24 hours
+                last_active_text = f"{minutes_ago // 1440} days ago"
             else:
-                last_active_text = f"{int((datetime.now() - last_active).seconds / 3600)} hours ago"
+                last_active_text = f"{minutes_ago // 60} hours ago"
 
-            last_active_label = customtkinter.CTkLabel(
-                master=row_frame,
-                text=last_active_text,
-                font=("Arial", 12)
-            )
-            last_active_label.grid(row=0, column=2, padx=15, pady=10, sticky="w")
+        customtkinter.CTkLabel(row_frame, text=last_active_text, font=("Arial", 12)).grid(
+            row=0, column=2, padx=15, pady=10, sticky="w")
 
-            # Threats detected - random number
-            threats = random.randint(0, 20)
-            threats_label = customtkinter.CTkLabel(
-                master=row_frame,
-                text=str(threats),
-                font=("Arial", 12)
-            )
-            threats_label.grid(row=0, column=3, padx=15, pady=10, sticky="w")
+        # Threats detected
+        customtkinter.CTkLabel(row_frame, text=str(random.randint(0, 20)), font=("Arial", 12)).grid(
+            row=0, column=3, padx=15, pady=10, sticky="w")
 
-            # Protection status
-            protection_status = random.choice(["Protected", "Update Required", "Protected"])
-            protection_color = "#1b720f" if protection_status == "Protected" else "#714bae"
+        # Protection status
+        protection_status = random.choice(["Protected", "Update Required", "Protected"])
+        protection_color = "#1b720f" if protection_status == "Protected" else "#714bae"
+        customtkinter.CTkLabel(row_frame, text=protection_status, text_color=protection_color,
+                               font=("Arial", 12)).grid(row=0, column=4, padx=15, pady=10, sticky="w")
 
-            protection_label = customtkinter.CTkLabel(
-                master=row_frame,
-                text=protection_status,
-                text_color=protection_color,
-                font=("Arial", 12)
-            )
-            protection_label.grid(row=0, column=4, padx=15, pady=10, sticky="w")
+        # Configure equal column widths
+        for col in range(5):
+            row_frame.grid_columnconfigure(col, weight=1)
 
-            # Configure equal column widths
-            for col in range(5):
-                row_frame.grid_columnconfigure(col, weight=1)
 
-    # ======= THREAT BREAKDOWN SECTION =======
-    threat_breakdown_frame = customtkinter.CTkFrame(master=main_content)
-    threat_breakdown_frame.pack(fill="x", padx=10, pady=10)
+def create_pie_chart(canvas, threat_types, total_threats):
+    """Draw pie chart on canvas"""
+    canvas.delete("all")
+    center_x, center_y, radius = 150, 150, 100
+    start_angle = 0
 
-    threat_breakdown_title = customtkinter.CTkLabel(
-        master=threat_breakdown_frame,
-        text="Threat Type Breakdown",
-        font=("Arial", 16, "bold")
-    )
-    threat_breakdown_title.pack(anchor="w", padx=20, pady=10)
+    for threat_type, data in threat_types.items():
+        angle = (data["count"] / total_threats) * 360
+        canvas.create_arc(center_x - radius, center_y - radius, center_x + radius, center_y + radius,
+                          start=start_angle, extent=angle, fill=data["color"], outline="#323b50", width=2)
+        start_angle += angle
 
-    # Create a simple pie chart representation
-    pie_frame = customtkinter.CTkFrame(master=threat_breakdown_frame, fg_color="transparent")
-    pie_frame.pack(fill="x", padx=20, pady=10)
 
-    # Left side for pie chart
-    pie_chart_frame = customtkinter.CTkFrame(master=pie_frame)
-    pie_chart_frame.pack(side="left", fill="both", expand=True, padx=(0, 10))
+def create_legend(parent, threat_types, total_threats):
+    """Create legend for pie chart"""
+    customtkinter.CTkLabel(parent, text="Threat Types", font=("Arial", 14, "bold")).pack(
+        anchor="w", padx=20, pady=(20, 10))
 
-    # Canvas for pie chart
-    pie_canvas = tk.Canvas(pie_chart_frame, bg="#1c253a", highlightthickness=0)
+    for threat_type, data in threat_types.items():
+        # Create row container
+        row = customtkinter.CTkFrame(parent, fg_color="transparent")
+        row.pack(fill="x", padx=20, pady=5)
+
+        # Color indicator
+        customtkinter.CTkFrame(row, width=15, height=15, corner_radius=2,
+                               fg_color=data["color"]).pack(side="left", padx=(0, 10))
+
+        # Threat type name
+        customtkinter.CTkLabel(row, text=threat_type, font=("Arial", 12)).pack(side="left")
+
+        # Count and percentage
+        percentage = (data["count"] / total_threats) * 100
+        customtkinter.CTkLabel(row, text=f"{data['count']} ({percentage:.1f}%)",
+                               font=("Arial", 12)).pack(side="right")
+
+
+def open_analytics_page(parent_frame):
+    """Analytics dashboard page with charts and statistics"""
+    # Clear the frame
+    for widget in parent_frame.winfo_children():
+        widget.destroy()
+
+    # Page title
+    customtkinter.CTkLabel(parent_frame, text="Analytics Dashboard",
+                           font=("Arial", 24, "bold")).pack(pady=20, anchor="w", padx=20)
+
+    # Main scrollable content
+    main_content = customtkinter.CTkScrollableFrame(parent_frame, width=950, height=800)
+    main_content.pack(fill="both", expand=True, padx=20, pady=10)
+
+    # ======= TOP CONTROLS =======
+    controls = customtkinter.CTkFrame(main_content)
+    controls.pack(fill="x", padx=10, pady=(0, 10))
+
+    customtkinter.CTkLabel(controls, text="Time Period:", font=("Arial", 14)).pack(
+        side="left", padx=20, pady=10)
+
+    time_periods = ["Last 24 Hours", "Last 7 Days", "Last 30 Days", "Last 90 Days", "Custom Range"]
+    time_var = tk.StringVar(value="Last 30 Days")
+    customtkinter.CTkComboBox(controls, values=time_periods, variable=time_var, width=200).pack(
+        side="left", padx=10, pady=10)
+
+    customtkinter.CTkButton(controls, text="Export Report", width=120, fg_color="#586b78").pack(
+        side="right", padx=10, pady=10)
+    customtkinter.CTkButton(controls, text="Refresh Data", width=120).pack(
+        side="right", padx=20, pady=10)
+
+    # ======= STATISTICS CARDS =======
+    stats_section = customtkinter.CTkFrame(main_content)
+    stats_section.pack(fill="x", padx=10, pady=10)
+
+    # Configure grid for equal column distribution
+    for i in range(4):
+        stats_section.grid_columnconfigure(i, weight=1)
+
+    # Create stats cards
+    stats_data = [
+        ("Total Threats Detected", str(random.randint(120, 300)), "threat_logs_icon.png"),
+        ("Active Clients", str(len(get_client_machines())), "client_machine_icon.png"),
+        ("Resolved Threats", str(random.randint(100, 250)), "systems_icon.png"),
+        ("Critical Alerts", str(random.randint(5, 20)), "analytics_icon.png")
+    ]
+
+    for i, (title, value, icon) in enumerate(stats_data):
+        create_stats_card(stats_section, title, value, icon, 0, i)
+
+    # ======= THREAT DETECTION CHART =======
+    chart_section = customtkinter.CTkFrame(main_content)
+    chart_section.pack(fill="x", padx=10, pady=10)
+
+    customtkinter.CTkLabel(chart_section, text="Threat Detection Trend (30 Days)",
+                           font=("Arial", 16, "bold")).pack(anchor="w", padx=20, pady=10)
+
+    threat_data = generate_mock_threat_data(30)
+    create_threat_chart(chart_section, threat_data)
+
+    # ======= CLIENT ACTIVITY TABLE =======
+    clients_section = customtkinter.CTkFrame(main_content)
+    clients_section.pack(fill="x", padx=10, pady=10)
+
+    customtkinter.CTkLabel(clients_section, text="Client Machine Activity",
+                           font=("Arial", 16, "bold")).pack(anchor="w", padx=20, pady=10)
+
+    table_container = customtkinter.CTkFrame(clients_section)
+    table_container.pack(fill="x", padx=20, pady=10)
+
+    create_client_table(table_container, get_client_machines())
+
+    # ======= THREAT BREAKDOWN =======
+    breakdown_section = customtkinter.CTkFrame(main_content)
+    breakdown_section.pack(fill="x", padx=10, pady=10)
+
+    customtkinter.CTkLabel(breakdown_section, text="Threat Type Breakdown",
+                           font=("Arial", 16, "bold")).pack(anchor="w", padx=20, pady=10)
+
+    # Pie chart and legend container
+    pie_container = customtkinter.CTkFrame(breakdown_section, fg_color="transparent")
+    pie_container.pack(fill="x", padx=20, pady=10)
+
+    # Pie chart
+    pie_chart_section = customtkinter.CTkFrame(pie_container)
+    pie_chart_section.pack(side="left", fill="both", expand=True, padx=(0, 10))
+
+    pie_canvas = tk.Canvas(pie_chart_section, bg="#1c253a", highlightthickness=0)
     pie_canvas.pack(fill="both", expand=True, padx=20, pady=20)
 
-    # Right side for legend
-    legend_frame = customtkinter.CTkFrame(master=pie_frame)
-    legend_frame.pack(side="right", fill="both", expand=True, padx=(10, 0))
+    # Legend
+    legend_section = customtkinter.CTkFrame(pie_container)
+    legend_section.pack(side="right", fill="both", expand=True, padx=(10, 0))
 
-    # Generate data for pie chart
+    # Generate threat type data
     threat_types = {
         "Malware": {"count": random.randint(30, 60), "color": "#1b720f"},
         "Phishing": {"count": random.randint(20, 40), "color": "#714bae"},
@@ -422,112 +365,8 @@ def open_analytics_page(parent_frame):
         "Zero-day": {"count": random.randint(5, 15), "color": "#4e288b"}
     }
 
-    # Calculate total and percentages
     total_threats = sum(threat["count"] for threat in threat_types.values())
 
-    # Draw pie chart
-    def draw_pie_chart():
-        pie_canvas.delete("all")
-
-        center_x, center_y = 150, 150
-        radius = 100
-
-        start_angle = 0
-
-        for threat_type, data in threat_types.items():
-            # Calculate angle based on percentage
-            angle = (data["count"] / total_threats) * 360
-            end_angle = start_angle + angle
-
-            # Draw pie slice
-            pie_canvas.create_arc(
-                center_x - radius, center_y - radius,
-                center_x + radius, center_y + radius,
-                start=start_angle, extent=angle,
-                fill=data["color"], outline="#323b50", width=2
-            )
-
-            start_angle = end_angle
-
-    draw_pie_chart()
-
-    # Draw legend
-    legend_title = customtkinter.CTkLabel(
-        master=legend_frame,
-        text="Threat Types",
-        font=("Arial", 14, "bold")
-    )
-    legend_title.pack(anchor="w", padx=20, pady=(20, 10))
-
-    for threat_type, data in threat_types.items():
-        # Create a row for each threat type
-        threat_row = customtkinter.CTkFrame(master=legend_frame, fg_color="transparent")
-        threat_row.pack(fill="x", padx=20, pady=5)
-
-        # Color indicator
-        color_indicator = customtkinter.CTkFrame(
-            master=threat_row,
-            width=15,
-            height=15,
-            corner_radius=2,
-            fg_color=data["color"]
-        )
-        color_indicator.pack(side="left", padx=(0, 10))
-
-        # Threat type name
-        threat_name = customtkinter.CTkLabel(
-            master=threat_row,
-            text=threat_type,
-            font=("Arial", 12)
-        )
-        threat_name.pack(side="left")
-
-        # Count and percentage
-        percentage = (data["count"] / total_threats) * 100
-        count_text = f"{data['count']} ({percentage:.1f}%)"
-
-        count_label = customtkinter.CTkLabel(
-            master=threat_row,
-            text=count_text,
-            font=("Arial", 12)
-        )
-        count_label.pack(side="right")
-
-    # ======= TIME PERIOD SELECTOR =======
-    # Add a time period selector at the top (just UI elements for now)
-    time_frame = customtkinter.CTkFrame(master=main_content)
-    time_frame.pack(fill="x", padx=10, pady=(0, 10))
-
-    time_label = customtkinter.CTkLabel(
-        master=time_frame,
-        text="Time Period:",
-        font=("Arial", 14)
-    )
-    time_label.pack(side="left", padx=20, pady=10)
-
-    time_periods = ["Last 24 Hours", "Last 7 Days", "Last 30 Days", "Last 90 Days", "Custom Range"]
-
-    time_var = tk.StringVar(value="Last 30 Days")
-    time_dropdown = customtkinter.CTkComboBox(
-        master=time_frame,
-        values=time_periods,
-        variable=time_var,
-        width=200
-    )
-    time_dropdown.pack(side="left", padx=10, pady=10)
-
-    refresh_button = customtkinter.CTkButton(
-        master=time_frame,
-        text="Refresh Data",
-        width=120
-    )
-    refresh_button.pack(side="right", padx=20, pady=10)
-
-    # Add export button
-    export_button = customtkinter.CTkButton(
-        master=time_frame,
-        text="Export Report",
-        width=120,
-        fg_color="#586b78"
-    )
-    export_button.pack(side="right", padx=10, pady=10)
+    # Draw pie chart and create legend
+    pie_canvas.after(100, lambda: create_pie_chart(pie_canvas, threat_types, total_threats))
+    create_legend(legend_section, threat_types, total_threats)

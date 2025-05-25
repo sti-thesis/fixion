@@ -1,6 +1,10 @@
 import customtkinter
 import tkinter
 from tkinter import messagebox
+import re
+import random
+import smtplib
+from email.message import EmailMessage
 
 
 def center_window(window, width, height):
@@ -12,6 +16,50 @@ def center_window(window, width, height):
     window.geometry(f"{width}x{height}+{x}+{y}")
 
 
+def validate_email(email):
+    """Validate email format"""
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    return re.match(pattern, email) is not None
+
+
+# Global variable to store the generated verification code
+verification_code = None
+
+def send_verification_email(email):
+    """Send verification email with actual SMTP"""
+    global verification_code
+
+    try:
+        # Generate 6-digit verification code
+        verification_code = ''.join([str(random.randint(0, 9)) for _ in range(6)])
+
+        # SMTP setup
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+
+        from_mail = 'sti.fixion@gmail.com'
+
+        server.login(from_mail, 'mxmo zftr ccbw uyhd')
+
+        # Create message
+        msg = EmailMessage()
+        msg['Subject'] = "Email Verification - OTP Code"
+        msg['From'] = from_mail
+        msg['To'] = email  # This should be the email string, not the entry widget
+        msg.set_content(f"Your verification code is: {verification_code}\n\nThis code will expire in 10 minutes.")
+
+        # Send message
+        server.send_message(msg)
+        server.quit()
+
+        print(f"Verification email sent to {email} with code: {verification_code}")
+        return True
+
+    except Exception as e:
+        print(f"Error sending email: {e}")
+        return False
+
+
 def open_signup_page(current_window):
     current_window.withdraw()
 
@@ -19,30 +67,124 @@ def open_signup_page(current_window):
     signup.title("Signup Page")
 
     # Set dimensions and center the window
-    width, height = 500, 700  # Increased height to accommodate extra field
+    width, height = 500, 850
     center_window(signup, width, height)
+
+    # Variables for verification
+    email_verified = False
+
+    def check_email_for_send_button():
+        """Enable/disable send button based on email validity"""
+        email = email_entry.get()
+        if email and validate_email(email):
+            send_code_btn.configure(state="normal")
+        else:
+            send_code_btn.configure(state="disabled")
+
+    def send_verification_code():
+        """Send verification code to email"""
+        nonlocal email_verified
+        email = email_entry.get()
+
+        if not email:
+            messagebox.showerror("Error", "Please enter an email address!")
+            return
+
+        if not validate_email(email):
+            messagebox.showerror("Error", "Please enter a valid email address!")
+            return
+
+        # Disable the send button while processing
+        send_code_btn.configure(state="disabled", text="Sending...")
+        signup.update()
+
+        if send_verification_email(email):
+            messagebox.showinfo("Code Sent", f"Verification code sent to {email}!")
+            send_code_btn.configure(text="Resend", state="normal")
+            email_verified = False
+            verify_status_label.configure(text="Code sent! Enter code and click Verify", text_color="orange")
+        else:
+            messagebox.showerror("Error",
+                                 "Failed to send verification email. Please check your internet connection and try again.")
+            send_code_btn.configure(text="Send Code", state="normal")
+
+    def verify_email_code():
+        """Verify the entered code"""
+        global verification_code
+        nonlocal email_verified
+
+        entered_code = verification_entry.get()
+
+        if not entered_code:
+            messagebox.showerror("Error", "Please enter the verification code!")
+            return
+
+        if not verification_code:
+            messagebox.showerror("Error", "Please request a verification code first!")
+            return
+
+        # Check if the entered code matches the sent code
+        if entered_code == verification_code:
+            email_verified = True
+            verify_status_label.configure(text="✓ Email Verified", text_color="green")
+            verify_code_btn.configure(state="disabled")
+            verification_entry.configure(state="disabled")
+            send_code_btn.configure(state="disabled")
+            messagebox.showinfo("Success", "Email verified successfully!")
+        else:
+            messagebox.showerror("Error", "Invalid verification code! Please try again.")
 
     def process_signup():
         first_name = firstname_entry.get()
         last_name = lastname_entry.get()
+        email = email_entry.get()
         username = username_entry.get()
         password = password_entry.get()
         confirm_password = password2_entry.get()
+        role = role_dropdown.get()
 
         # validation
-        if not all([first_name, last_name, username, password, confirm_password]):
+        if not all([first_name, last_name, email, username, password, confirm_password, role]):
             messagebox.showerror("Error", "All fields are required!")
             return
+
+        if not validate_email(email):
+            messagebox.showerror("Error", "Please enter a valid email address!")
+            return
+
+        if not email_verified:
+            messagebox.showerror("Error", "Please verify your email address first!")
+            return
+
         if password != confirm_password:
             messagebox.showerror("Error", "Passwords do not match!")
             return
+
+        if len(password) < 6:
+            messagebox.showerror("Error", "Password must be at least 6 characters long!")
+            return
+
+        if role == "Select Role":
+            messagebox.showerror("Error", "Please select a role!")
+            return
+
         if not check_box.get():
             messagebox.showerror("Error", "You must agree to the Terms of Service and Privacy Policy!")
             return
 
-        # Build full name from first and last name
-        full_name = f"{first_name} {last_name}"
-        messagebox.showinfo("Success", f"Account created for {username}!")
+        # Create account
+        signup_data = {
+            'first_name': first_name,
+            'last_name': last_name,
+            'full_name': f"{first_name} {last_name}",
+            'email': email,
+            'username': username,
+            'password': password,  # In real app, hash this password
+            'role': role
+        }
+
+        print(f"User data: {signup_data}")
+        messagebox.showinfo("Success", f"Account created successfully for {username}!")
         signup.after(100, lambda: safe_destroy_and_show(signup, current_window))
 
     # to return to login page
@@ -57,59 +199,102 @@ def open_signup_page(current_window):
             print(f"Error during window transition: {e}")
 
     # Main frame
-    frame = customtkinter.CTkFrame(master=signup, width=400, height=600, corner_radius=18)
+    frame = customtkinter.CTkFrame(master=signup, width=400, height=750, corner_radius=18)
     frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
 
     # Logo placeholder
-    logo = customtkinter.CTkFrame(master=frame, width=150, height=150)
-    logo.place(relx=0.5, rely=0.18, anchor=tkinter.CENTER)
+    logo = customtkinter.CTkFrame(master=frame, width=120, height=120)
+    logo.place(relx=0.5, rely=0.1, anchor=tkinter.CENTER)
 
     # Title label
-    label_1 = customtkinter.CTkLabel(master=frame, fg_color="transparent", text="Create an Admin Account")
-    label_1.place(relx=0.5, rely=0.35, anchor=tkinter.CENTER)
+    label_1 = customtkinter.CTkLabel(master=frame, fg_color="transparent", text="Create an Account",
+                                     font=("Arial", 16, "bold"))
+    label_1.place(relx=0.5, rely=0.18, anchor=tkinter.CENTER)
 
-    # Create a frame to hold the first name and last name entries with completely transparent background
+    # Create a frame to hold the first name and last name entries
     name_frame = customtkinter.CTkFrame(master=frame, fg_color="transparent", border_width=0)
-    name_frame.place(relx=0.5, rely=0.43, anchor=tkinter.CENTER)
+    name_frame.place(relx=0.5, rely=0.25, anchor=tkinter.CENTER)
 
-    # First name entry - using transparent background
+    # First name entry
     firstname_entry = customtkinter.CTkEntry(master=name_frame, width=145, fg_color="transparent",
                                              placeholder_text='First Name')
     firstname_entry.grid(row=0, column=0, padx=(0, 5))
 
-    # Last name entry - using transparent background
+    # Last name entry
     lastname_entry = customtkinter.CTkEntry(master=name_frame, width=145, fg_color="transparent",
                                             placeholder_text='Last Name')
     lastname_entry.grid(row=0, column=1, padx=(5, 0))
 
+    # Email entry
+    email_entry = customtkinter.CTkEntry(master=frame, width=300, fg_color="transparent",
+                                         placeholder_text='Email Address')
+    email_entry.place(relx=0.5, rely=0.32, anchor=tkinter.CENTER)
+
+    # Bind email entry to enable/disable send button
+    email_entry.bind('<KeyRelease>', lambda e: check_email_for_send_button())
+
+    # Verification frame (always shown)
+    verification_frame = customtkinter.CTkFrame(master=frame, fg_color="transparent", border_width=0)
+    verification_frame.place(relx=0.5, rely=0.39, anchor=tkinter.CENTER)
+
+    # Send code button (left side)
+    send_code_btn = customtkinter.CTkButton(master=verification_frame, width=55, text="Send Code",
+                                            command=send_verification_code, state="disabled")
+    send_code_btn.grid(row=0, column=0, padx=(0, 2))
+
+    # Verification code entry (center)
+    verification_entry = customtkinter.CTkEntry(master=verification_frame, width=140, fg_color="transparent",
+                                                placeholder_text='6-digit code')
+    verification_entry.grid(row=0, column=1, padx=(5, 5))
+
+    # Verify code button (right side)
+    verify_code_btn = customtkinter.CTkButton(master=verification_frame, width=40, text="Verify",
+                                              command=verify_email_code)
+    verify_code_btn.grid(row=0, column=2, padx=(2, 0))
+
+    # Verification status label (below the buttons)
+    verify_status_label = customtkinter.CTkLabel(master=frame, text="Enter email to enable verification",
+                                                 fg_color="transparent", text_color="gray")
+    verify_status_label.place(relx=0.5, rely=0.43, anchor=tkinter.CENTER)
+
     # Username entry
     username_entry = customtkinter.CTkEntry(master=frame, width=300, fg_color="transparent",
                                             placeholder_text='Username')
-    username_entry.place(relx=0.5, rely=0.51, anchor=tkinter.CENTER)
+    username_entry.place(relx=0.5, rely=0.47, anchor=tkinter.CENTER)
 
     # Password entry
     password_entry = customtkinter.CTkEntry(master=frame, width=300, fg_color="transparent",
-                                            placeholder_text='Password', show="*")
-    password_entry.place(relx=0.5, rely=0.59, anchor=tkinter.CENTER)
+                                            placeholder_text='Password (min 6 characters)', show="*")
+    password_entry.place(relx=0.5, rely=0.54, anchor=tkinter.CENTER)
 
     # Confirm password entry
     password2_entry = customtkinter.CTkEntry(master=frame, width=300, fg_color="transparent",
                                              placeholder_text='Confirm Password', show="*")
-    password2_entry.place(relx=0.5, rely=0.67, anchor=tkinter.CENTER)
+    password2_entry.place(relx=0.5, rely=0.61, anchor=tkinter.CENTER)
+
+    # Role selection dropdown
+    role_label = customtkinter.CTkLabel(master=frame, text="Select Role:", fg_color="transparent")
+    role_label.place(relx=0.5, rely=0.67, anchor=tkinter.CENTER)
+
+    role_dropdown = customtkinter.CTkOptionMenu(master=frame, width=300,
+                                                values=["Admin", "IT Staff", "Developer"])
+    role_dropdown.place(relx=0.5, rely=0.72, anchor=tkinter.CENTER)
+    role_dropdown.set("Select Role")  # Default text
 
     # Terms checkbox
     check_box = customtkinter.CTkCheckBox(master=frame, checkbox_height=20, checkbox_width=20, border_width=2,
                                           text="I agree to the Terms of Service and Privacy Policy")
-    check_box.place(relx=0.5, rely=0.75, anchor=tkinter.CENTER)
+    check_box.place(relx=0.5, rely=0.79, anchor=tkinter.CENTER)
 
     # Sign up button
     signup_btn = customtkinter.CTkButton(master=frame, width=230, text="Sign Up", command=process_signup)
-    signup_btn.place(relx=0.5, rely=0.83, anchor=tkinter.CENTER)
+    signup_btn.place(relx=0.5, rely=0.86, anchor=tkinter.CENTER)
 
     # Login button
-    login_btn = customtkinter.CTkButton(master=frame, width=230, text="Already Have an Account? Login", border_width=2,
-                                        fg_color="transparent", text_color="#ECEFF1", command=back_to_login)
-    login_btn.place(relx=0.5, rely=0.9, anchor=tkinter.CENTER)
+    login_btn = customtkinter.CTkButton(master=frame, width=230, text="Already Have an Account? Login",
+                                        border_width=2, fg_color="transparent", text_color="#ECEFF1",
+                                        command=back_to_login)
+    login_btn.place(relx=0.5, rely=0.92, anchor=tkinter.CENTER)
 
     signup.protocol("WM_DELETE_WINDOW", back_to_login)
     signup.mainloop()

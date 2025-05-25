@@ -68,8 +68,8 @@
     "corner_radius": 12,
     "border_width": 1,
     "fg_color": [
-      "#a9b8c4",
-      "#a9b8c4"
+      "transparent",
+      "transparent"
     ],
     "border_color": [
       "#a4aab0",
@@ -80,8 +80,8 @@
       "#ECEFF1"
     ],
     "placeholder_text_color": [
-      "#a4acb0",
-      "#a4acb0"
+      "#ECEFF1",
+      "#ECEFF1"
     ]
   },
   "CTkSwitch": {
