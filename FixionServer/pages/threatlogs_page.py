@@ -198,9 +198,10 @@ def open_threatlogs_page(parent_frame):
     title = customtkinter.CTkLabel(
         master=parent_frame,
         text="Threat Logs",
-        font=("Arial", 24, "bold")
+        font=("Roboto", 24, "bold"),
+        text_color= "#e9e8e8"
     )
-    title.pack(pady=(20, 10), anchor="w", padx=20)
+    title.pack(anchor="w", padx=12, pady= 12)
 
     # Create a frame for the filter controls
     filter_frame = customtkinter.CTkFrame(parent_frame)

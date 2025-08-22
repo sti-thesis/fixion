@@ -268,11 +268,16 @@ def open_analytics_page(parent_frame):
         widget.destroy()
 
     # Page title
-    customtkinter.CTkLabel(parent_frame, text="Analytics Dashboard",
-                           font=("Arial", 24, "bold")).pack(pady=20, anchor="w", padx=20)
+    title = customtkinter.CTkLabel(
+        master=parent_frame,
+        text="Analytics",
+        font=("Roboto", 24, "bold"),
+        text_color= "#e9e8e8"
+    )
+    title.pack(anchor="w", padx=12, pady= 12)
 
     # Main scrollable content
-    main_content = customtkinter.CTkScrollableFrame(parent_frame, width=950, height=800)
+    main_content = customtkinter.CTkScrollableFrame(parent_frame, width=950, height=800, fg_color="#22222f")
     main_content.pack(fill="both", expand=True, padx=20, pady=10)
 
     # ======= TOP CONTROLS =======
