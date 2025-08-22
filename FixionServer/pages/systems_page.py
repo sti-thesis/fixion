@@ -13,9 +13,10 @@ def open_systems_page(parent_frame):
     title = customtkinter.CTkLabel(
         master=parent_frame,
         text="System Settings",
-        font=("Arial", 24, "bold")
+        font=("Roboto", 24, "bold"),
+        text_color= "#e9e8e8"
     )
-    title.pack(pady=20, anchor="w")
+    title.pack(anchor="w", padx=12, pady= 12)
 
     # Empty content - to be filled as needed
     content = customtkinter.CTkLabel(

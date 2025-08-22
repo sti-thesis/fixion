@@ -16,13 +16,14 @@ def open_snapshot_page(parent_frame):
     # Page title
     title = customtkinter.CTkLabel(
         master=parent_frame,
-        text="Snapshots & Rollbacks",
-        font=("Arial", 24, "bold")
+        text="Snapshot",
+        font=("Roboto", 24, "bold"),
+        text_color= "#e9e8e8"
     )
-    title.pack(pady=20, anchor="w", padx=20)
+    title.pack(anchor="w", padx=12, pady= 12)
 
     # Create tabs for different sections
-    tab_view = customtkinter.CTkTabview(master=parent_frame)
+    tab_view = customtkinter.CTkTabview(master=parent_frame, fg_color="#22222f")
     tab_view.pack(fill="both", expand=True, padx=20, pady=10)
 
     tab_timeline = tab_view.add("Snapshot Timeline")

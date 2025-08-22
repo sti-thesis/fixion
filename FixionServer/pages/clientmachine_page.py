@@ -20,28 +20,34 @@ def open_clientmachine_page(parent_frame):
     title = customtkinter.CTkLabel(
         master=parent_frame,
         text="Client Machine Management",
-        font=("Arial", 24, "bold")
+        font=("Roboto", 24, "bold"),
+        text_color="#e9e8e8"
     )
-    title.pack(pady=(20, 10), anchor="w", padx=20)
+    title.pack(anchor="w", padx=(12,0), pady= (12,0))
 
     # Search and filter section - directly on parent frame
     search_frame = customtkinter.CTkFrame(parent_frame, fg_color="transparent", border_width=0)
-    search_frame.pack(fill="x", padx=20, pady=10,)
+    search_frame.pack(fill="x", padx=(30,0), pady= (18,0))
 
     search_entry = customtkinter.CTkEntry(
         master=search_frame,
         placeholder_text="Search machines...",
-        text_color="White",
-        width=200
+        width=200,
+        border_width=0,
+        fg_color="#22222f",
+        text_color="#e9e8e8",
+        placeholder_text_color="#b1b4c9",
+        corner_radius=12
     )
-    search_entry.grid(row=0, column=0, padx=(10, 5), pady=10, sticky="w")
+    search_entry.grid(row=0, column=0, sticky="w")
 
     search_button = customtkinter.CTkButton(
         master=search_frame,
         text="Search",
-        width=80
+        width=80,
+        corner_radius=28
     )
-    search_button.grid(row=0, column=1, padx=5, pady=10, sticky="w")
+    search_button.grid(row=0, column=1, padx=(5,0), sticky="w")
 
     # Filter dropdown
     filter_var = tk.StringVar(value="All")
@@ -49,34 +55,45 @@ def open_clientmachine_page(parent_frame):
         master=search_frame,
         width=120,
         values=["All", "Online", "Offline", "Compromised"],
-        variable=filter_var
+        variable=filter_var,
+        border_width=0,
+        fg_color="#22222f",
+        button_color="#22222f",
+        dropdown_fg_color="#22222f",
+        dropdown_font=("Roboto Medium", 12),
+        dropdown_text_color="#e9e8e8",
+        corner_radius=12,
+        text_color="#b1b4c9",
+
     )
-    filter_combobox.grid(row=0, column=2, padx=(20, 5), pady=10, sticky="w")
+    filter_combobox.grid(row=0, column=2, padx=(20, 5), sticky="w")
 
     # Refresh button
     refresh_button = customtkinter.CTkButton(
         master=search_frame,
         text="Refresh List",
-        width=120
+        width=120,
+        corner_radius=28
     )
-    refresh_button.grid(row=0, column=3, padx=(20, 10), pady=10, sticky="e")
+    refresh_button.grid(row=0, column=3, padx=(20, 10), sticky="e")
 
     # Main content frame with two sections
-    content_frame = customtkinter.CTkFrame(master=parent_frame, fg_color="transparent", border_width=0)
-    content_frame.pack(fill="both", expand=True, padx=20, pady=10)
+    content_frame = customtkinter.CTkFrame(master=parent_frame,fg_color="#15141b")
+    content_frame.pack(fill="both", expand=True, padx=30,pady=12)
 
     # Create two sections: Machine list on left, Details/Actions on right
-    list_frame = customtkinter.CTkFrame(master=content_frame)
-    list_frame.pack(side="left", fill="both", expand=True, padx=(0, 10))
+    list_frame = customtkinter.CTkFrame(master=content_frame, fg_color="#22232e",border_width=0, corner_radius=20 )
+    list_frame.pack(side="left", fill="both", expand=True, padx=(0, 20))
 
-    details_frame = customtkinter.CTkFrame(master=content_frame)
-    details_frame.pack(side="right", fill="both", expand=True, padx=(10, 0))
+    details_frame = customtkinter.CTkFrame(master=content_frame, fg_color="#22232e",border_width=0, corner_radius=20 )
+    details_frame.pack(side="right", fill="both", expand=True, padx=(20, 0))
 
     # ======= CLIENT MACHINE LIST SECTION =======
     list_label = customtkinter.CTkLabel(
         master=list_frame,
         text="Registered Machines",
-        font=("Arial", 18, "bold")
+        text_color="#e9e8e8",
+        font=("Roboto", 18, "bold")
     )
     list_label.pack(pady=10, anchor="w", padx=10)
 
@@ -86,30 +103,33 @@ def open_clientmachine_page(parent_frame):
         width=400,
         height=500,
         scrollbar_button_color="#565B73",
-        scrollbar_button_hover_color="#6B7089",border_width=0
+        scrollbar_button_hover_color="#6B7089",border_width=0,
+        fg_color="#22222f"
 
     )
 
-    machines_list_container.pack(fill="both", expand=True, padx=0, pady=0)
+    machines_list_container.pack(fill="both", expand=True, padx=4, pady=(0,20))
 
 
     # ======= MACHINE DETAILS SECTION =======
     details_label = customtkinter.CTkLabel(
         master=details_frame,
         text="Machine Details",
-        font=("Arial", 18, "bold")
+        text_color="#e9e8e8",
+        font=("Roboto", 18, "bold")
     )
     details_label.pack(pady=10, anchor="w", padx=10)
 
     # Machine info section - no extra container
-    info_display_frame = customtkinter.CTkFrame(master=details_frame, fg_color="transparent", border_width=0)
+    info_display_frame = customtkinter.CTkFrame(master=details_frame, fg_color="transparent", border_width=0,)
     info_display_frame.pack(fill="x", padx=2, pady=10)
 
     # Initial empty state
     no_selection_label = customtkinter.CTkLabel(
         master=info_display_frame,
         text="Select a machine to view details",
-        font=("Arial", 14)
+        text_color="#e9e8e8",
+        font=("Roboto", 14)
     )
     no_selection_label.pack(pady=20)
 
@@ -184,7 +204,7 @@ def open_clientmachine_page(parent_frame):
         name_label = customtkinter.CTkLabel(
             master=info_display_frame,
             text=machine.get("username", "Unknown Machine"),
-            font=("Arial", 16, "bold")
+            font=("Rotobot", 16, "bold")
         )
         name_label.pack(anchor="w", pady=(10, 15), padx=12)
 
@@ -215,7 +235,7 @@ def open_clientmachine_page(parent_frame):
         status_label = customtkinter.CTkLabel(
             master=status_container,
             text=f"Status: {status_text}",
-            font=("Arial", 13, "bold")
+            font=("Roboto", 1, "bold")
         )
         status_label.pack(side="left")
 
@@ -236,7 +256,8 @@ def open_clientmachine_page(parent_frame):
             customtkinter.CTkLabel(
                 master=info_grid,
                 text=label_text,
-                font=("Arial", 12, "bold"),
+                text_color="#e9e8e8",
+                font=("Roboto", 12, "bold"),
                 anchor="w"
             ).grid(row=row, column=0, sticky="w", pady=5, padx=(0, 20))
 
@@ -248,7 +269,7 @@ def open_clientmachine_page(parent_frame):
             customtkinter.CTkLabel(
                 master=info_grid,
                 text=value_text,
-                font=("Arial", 12),
+                font=("Roboto", 12),
                 text_color=value_color,
                 anchor="w"
             ).grid(row=row, column=1, sticky="w", pady=5)
@@ -269,7 +290,7 @@ def open_clientmachine_page(parent_frame):
         actions_title = customtkinter.CTkLabel(
             master=actions_display_frame,
             text="Remote Actions",
-            font=("Arial", 16, "bold")
+            font=("Roboto", 16, "bold")
         )
         actions_title.pack(anchor="w", pady=(0, 15))
 
@@ -470,7 +491,7 @@ def open_clientmachine_page(parent_frame):
             machine_name = customtkinter.CTkLabel(
                 master=info_container,
                 text=machine.get("username", "Unknown"),
-                font=("Arial", 13, "bold"),
+                font=("Roboto", 13, "bold"),
                 anchor="w"
             )
             machine_name.pack(anchor="w")
@@ -481,7 +502,7 @@ def open_clientmachine_page(parent_frame):
                 location_label = customtkinter.CTkLabel(
                     master=info_container,
                     text=location_text,
-                    font=("Arial", 11),
+                    font=("Roboto", 11),
                     text_color="#9CA3AF",
                     anchor="w"
                 )
@@ -493,7 +514,7 @@ def open_clientmachine_page(parent_frame):
                 threat_label = customtkinter.CTkLabel(
                     master=content_container,
                     text=f"⚠️ {threat_count}",
-                    font=("Arial", 12, "bold"),
+                    font=("Roboto", 11),
                     text_color="#63003d"
                 )
                 threat_label.pack(side="right", padx=(10, 0))

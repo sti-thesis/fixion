@@ -17,12 +17,13 @@ def open_userm_page(parent_frame):
     title = customtkinter.CTkLabel(
         master=parent_frame,
         text="User Management",
-        font=("Arial", 24, "bold")
+        font=("Roboto", 24, "bold"),
+        text_color= "#e9e8e8"
     )
-    title.pack(pady=20, anchor="w")
+    title.pack(anchor="w", padx=12, pady= 12)
 
     # Main content frame
-    content_frame = customtkinter.CTkFrame(master=parent_frame)
+    content_frame = customtkinter.CTkFrame(master=parent_frame,fg_color="#22222f")
     content_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
     # Create two sections: User list on left, Add/Edit form on right
