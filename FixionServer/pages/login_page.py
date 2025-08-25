@@ -1,7 +1,6 @@
 import customtkinter
 import tkinter
 from tkinter import messagebox
-from customtkinter import set_default_color_theme
 import os
 from PIL import Image
 
@@ -67,12 +66,12 @@ def open_login_page():
     logo_path = os.path.join(os.path.dirname(__file__), "logo", "fixion_logo.png")
     logo_img = customtkinter.CTkImage(
         light_image=Image.open(logo_path),
-        dark_image=Image.open(logo_path),
         size=(160, 160)
     )
     logo_label = customtkinter.CTkLabel(
         master=frame,
-        image=logo_img, text=""
+        image=logo_img,
+        text=""
     )
     logo_label.place(relx=0.5, rely=0.31, anchor=tkinter.CENTER)
 
