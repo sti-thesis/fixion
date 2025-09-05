@@ -199,32 +199,18 @@ def open_threatlogs_page(parent_frame):
         master=parent_frame,
         text="Threat Logs",
         font=("Roboto", 24, "bold"),
-        text_color= "#e9e8e8"
+        text_color="#e9e8e8"
     )
-    title.pack(anchor="w", padx=12, pady= 12)
+    title.pack(anchor="w", padx=12, pady=12)
 
     # Create a frame for the filter controls
-    filter_frame = customtkinter.CTkFrame(parent_frame)
+    filter_frame = customtkinter.CTkFrame(parent_frame, fg_color="#22232e")
     filter_frame.pack(fill="x", padx=20, pady=10)
 
-    # Create filter controls
-    # 1. Threat Type Filter
-    type_label = customtkinter.CTkLabel(filter_frame, text="Threat Type:")
-    type_label.grid(row=0, column=0, padx=(10, 5), pady=10, sticky="w")
-
-    threat_types = ["All"] + sorted(list(set([threat["type"] for threat in sample_threats])))
-    type_var = tk.StringVar(value="All")
-    type_dropdown = customtkinter.CTkOptionMenu(
-        filter_frame,
-        values=threat_types,
-        variable=type_var,
-        width=150
-    )
-    type_dropdown.grid(row=0, column=1, padx=5, pady=10, sticky="w")
-
-    # 2. Severity Filter
-    severity_label = customtkinter.CTkLabel(filter_frame, text="Severity:")
-    severity_label.grid(row=0, column=2, padx=(20, 5), pady=10, sticky="w")
+    # Create filter controls (removed threat type filter)
+    # 1. Severity Filter
+    severity_label = customtkinter.CTkLabel(filter_frame, text="Severity:", text_color="#e9e8e8")
+    severity_label.grid(row=0, column=0, padx=(20, 5), pady=10, sticky="w")
 
     severities = ["All", "Critical", "High", "Medium", "Low"]
     severity_var = tk.StringVar(value="All")
@@ -234,11 +220,11 @@ def open_threatlogs_page(parent_frame):
         variable=severity_var,
         width=150
     )
-    severity_dropdown.grid(row=0, column=3, padx=5, pady=10, sticky="w")
+    severity_dropdown.grid(row=0, column=1, padx=5, pady=10, sticky="w")
 
-    # 3. Date Filter
-    date_label = customtkinter.CTkLabel(filter_frame, text="Date:")
-    date_label.grid(row=0, column=4, padx=(20, 5), pady=10, sticky="w")
+    # 2. Date Filter
+    date_label = customtkinter.CTkLabel(filter_frame, text="Date:", text_color="#e9e8e8")
+    date_label.grid(row=0, column=2, padx=(20, 5), pady=10, sticky="w")
 
     # For simplicity, use a dropdown for date ranges instead of a date picker
     date_ranges = ["All", "Today", "Last 3 Days", "Last Week", "Last Month"]
@@ -249,7 +235,7 @@ def open_threatlogs_page(parent_frame):
         variable=date_var,
         width=150
     )
-    date_dropdown.grid(row=0, column=5, padx=5, pady=10, sticky="w")
+    date_dropdown.grid(row=0, column=3, padx=5, pady=10, sticky="w")
 
     # Create scrollable treeview for threat logs
     tree_frame = ScrollableTreeView(parent_frame)
@@ -280,7 +266,7 @@ def open_threatlogs_page(parent_frame):
     tree.column("action", width=200, minwidth=200)
 
     # Create a details frame for displaying threat details when clicking on a row
-    details_frame = customtkinter.CTkFrame(parent_frame)
+    details_frame = customtkinter.CTkFrame(parent_frame, fg_color="#22232e")
     details_frame.pack(fill="x", padx=20, pady=10)
 
     # Initially hide the details frame
@@ -290,15 +276,16 @@ def open_threatlogs_page(parent_frame):
     details_title = customtkinter.CTkLabel(
         details_frame,
         text="Threat Details",
-        font=("Arial", 18, "bold")
+        font=("Roboto", 18, "bold"),
+        text_color="#e9e8e8"
     )
     details_title.pack(anchor="w", padx=15, pady=(15, 10))
 
     # Create frames for different sections of details
-    machine_info_frame = customtkinter.CTkFrame(details_frame)
+    machine_info_frame = customtkinter.CTkFrame(details_frame, fg_color="#22232e")
     machine_info_frame.pack(fill="x", padx=15, pady=5)
 
-    affected_files_frame = customtkinter.CTkFrame(details_frame)
+    affected_files_frame = customtkinter.CTkFrame(details_frame, fg_color="#22232e")
     affected_files_frame.pack(fill="x", padx=15, pady=5)
 
     # Apply Filter Button - MOVED AFTER TREE IS CREATED
@@ -306,22 +293,18 @@ def open_threatlogs_page(parent_frame):
         filter_frame,
         text="Apply Filters",
         width=120,
-        command=lambda: apply_filters(type_var.get(), severity_var.get(), date_var.get())
+        command=lambda: apply_filters(severity_var.get(), date_var.get())
     )
-    apply_button.grid(row=0, column=6, padx=(20, 10), pady=10, sticky="e")
+    apply_button.grid(row=0, column=4, padx=(20, 10), pady=10, sticky="e")
 
-    # Function to apply filters
-    def apply_filters(type_filter, severity_filter, date_filter):
+    # Function to apply filters (removed type_filter parameter)
+    def apply_filters(severity_filter, date_filter):
         # Clear current data
         for item in tree.get_children():
             tree.delete(item)
 
         # Apply filters
         filtered_threats = sample_threats.copy()
-
-        # Filter by threat type
-        if type_filter != "All":
-            filtered_threats = [t for t in filtered_threats if t["type"] == type_filter]
 
         # Filter by severity
         if severity_filter != "All":
@@ -381,7 +364,8 @@ def open_threatlogs_page(parent_frame):
         machine_title = customtkinter.CTkLabel(
             machine_info_frame,
             text="Machine Information",
-            font=("Arial", 16, "bold")
+            font=("Roboto", 16, "bold"),
+            text_color="#e9e8e8"
         )
         machine_title.pack(anchor="w", padx=10, pady=(10, 5))
 
@@ -392,35 +376,36 @@ def open_threatlogs_page(parent_frame):
         info_grid.pack(fill="x", padx=10, pady=5)
 
         # Client Machine
-        customtkinter.CTkLabel(info_grid, text="Client Machine:", font=("Arial", 12, "bold")).grid(row=0, column=0,
+        customtkinter.CTkLabel(info_grid, text="Client Machine:", font=("Roboto", 12, "bold"), text_color="#e9e8e8").grid(row=0, column=0,
                                                                                                    sticky="w", padx=5,
                                                                                                    pady=2)
-        customtkinter.CTkLabel(info_grid, text=threat["client_machine"]).grid(row=0, column=1, sticky="w", padx=5,
+        customtkinter.CTkLabel(info_grid, text=threat["client_machine"], text_color="#e9e8e8").grid(row=0, column=1, sticky="w", padx=5,
                                                                               pady=2)
 
         # OS
-        customtkinter.CTkLabel(info_grid, text="Operating System:", font=("Arial", 12, "bold")).grid(row=1, column=0,
+        customtkinter.CTkLabel(info_grid, text="Operating System:", font=("Roboto", 12, "bold"), text_color="#e9e8e8").grid(row=1, column=0,
                                                                                                      sticky="w", padx=5,
                                                                                                      pady=2)
-        customtkinter.CTkLabel(info_grid, text=machine_info["os"]).grid(row=1, column=1, sticky="w", padx=5, pady=2)
+        customtkinter.CTkLabel(info_grid, text=machine_info["os"], text_color="#e9e8e8").grid(row=1, column=1, sticky="w", padx=5, pady=2)
 
         # IP
-        customtkinter.CTkLabel(info_grid, text="IP Address:", font=("Arial", 12, "bold")).grid(row=2, column=0,
+        customtkinter.CTkLabel(info_grid, text="IP Address:", font=("Roboto", 12, "bold"), text_color="#e9e8e8").grid(row=2, column=0,
                                                                                                sticky="w", padx=5,
                                                                                                pady=2)
-        customtkinter.CTkLabel(info_grid, text=machine_info["ip"]).grid(row=2, column=1, sticky="w", padx=5, pady=2)
+        customtkinter.CTkLabel(info_grid, text=machine_info["ip"], text_color="#e9e8e8").grid(row=2, column=1, sticky="w", padx=5, pady=2)
 
         # Location
-        customtkinter.CTkLabel(info_grid, text="Location:", font=("Arial", 12, "bold")).grid(row=3, column=0,
+        customtkinter.CTkLabel(info_grid, text="Location:", font=("Roboto", 12, "bold"), text_color="#e9e8e8").grid(row=3, column=0,
                                                                                              sticky="w", padx=5, pady=2)
-        customtkinter.CTkLabel(info_grid, text=machine_info["location"]).grid(row=3, column=1, sticky="w", padx=5,
+        customtkinter.CTkLabel(info_grid, text=machine_info["location"], text_color="#e9e8e8").grid(row=3, column=1, sticky="w", padx=5,
                                                                               pady=2)
 
         # Affected Files Section
         files_title = customtkinter.CTkLabel(
             affected_files_frame,
             text="Affected Files",
-            font=("Arial", 16, "bold")
+            font=("Roboto", 16, "bold"),
+            text_color="#e9e8e8"
         )
         files_title.pack(anchor="w", padx=10, pady=(10, 5))
 
@@ -452,12 +437,13 @@ def open_threatlogs_page(parent_frame):
                     print(f"Failed to load icon: {e}")
 
                 # File path label
-                file_label = customtkinter.CTkLabel(file_frame, text=file_path)
+                file_label = customtkinter.CTkLabel(file_frame, text=file_path, text_color="#e9e8e8")
                 file_label.pack(side="left", padx=(10 if not file_icon else 5, 10), pady=5)
         else:
             no_files_label = customtkinter.CTkLabel(
                 affected_files_frame,
-                text="No files were directly affected by this threat."
+                text="No files were directly affected by this threat.",
+                text_color="#e9e8e8"
             )
             no_files_label.pack(anchor="w", padx=10, pady=5)
 
@@ -465,14 +451,16 @@ def open_threatlogs_page(parent_frame):
         action_title = customtkinter.CTkLabel(
             affected_files_frame,
             text="Action Taken",
-            font=("Arial", 16, "bold")
+            font=("Roboto", 16, "bold"),
+            text_color="#e9e8e8"
         )
         action_title.pack(anchor="w", padx=10, pady=(10, 5))
 
         action_label = customtkinter.CTkLabel(
             affected_files_frame,
             text=threat["action_taken"],
-            font=("Arial", 13)
+            font=("Roboto", 13),
+            text_color="#e9e8e8"
         )
         action_label.pack(anchor="w", padx=10, pady=5)
 
