@@ -7,7 +7,7 @@ from tkinter import messagebox
 
 def open_userm_page(parent_frame):
     """
-    User Management page
+    User Management page with consistent theme
     """
     # Clear the frame first
     for widget in parent_frame.winfo_children():
@@ -17,72 +17,119 @@ def open_userm_page(parent_frame):
     title = customtkinter.CTkLabel(
         master=parent_frame,
         text="User Management",
-        font=("Arial", 24, "bold")
+        font=("Roboto", 24, "bold"),
+        text_color="#e9e8e8"
     )
-    title.pack(pady=20, anchor="w")
+    title.pack(anchor="w", padx=(12,0), pady=(12,0))
+
+    # Search and filter section - directly on parent frame
+    search_frame = customtkinter.CTkFrame(parent_frame, fg_color="transparent", border_width=0)
+    search_frame.pack(fill="x", padx=(30,0), pady=(18,0))
+
+    search_entry = customtkinter.CTkEntry(
+        master=search_frame,
+        placeholder_text="Search users...",
+        width=200,
+        border_width=0,
+        fg_color="#22222f",
+        text_color="#e9e8e8",
+        placeholder_text_color="#b1b4c9",
+        corner_radius=12
+    )
+    search_entry.grid(row=0, column=0, sticky="w")
+
+    search_button = customtkinter.CTkButton(
+        master=search_frame,
+        text="Search",
+        width=80,
+        corner_radius=28
+    )
+    search_button.grid(row=0, column=1, padx=(5,0), sticky="w")
+
+    # Filter dropdown for user types
+    filter_var = tk.StringVar(value="All")
+    filter_combobox = customtkinter.CTkComboBox(
+        master=search_frame,
+        width=120,
+        values=["All", "Users", "Client Machines", "Admins", "IT Staff"],
+        variable=filter_var,
+        border_width=0,
+        fg_color="#22222f",
+        button_color="#22222f",
+        dropdown_fg_color="#22222f",
+        dropdown_font=("Roboto Medium", 12),
+        dropdown_text_color="#e9e8e8",
+        corner_radius=12,
+        text_color="#b1b4c9",
+    )
+    filter_combobox.grid(row=0, column=2, padx=(20, 5), sticky="w")
+
+    # Refresh button
+    refresh_button = customtkinter.CTkButton(
+        master=search_frame,
+        text="Refresh List",
+        width=120,
+        corner_radius=28
+    )
+    refresh_button.grid(row=0, column=3, padx=(20, 10), sticky="e")
 
     # Main content frame
-    content_frame = customtkinter.CTkFrame(master=parent_frame)
-    content_frame.pack(fill="both", expand=True, padx=10, pady=10)
+    content_frame = customtkinter.CTkFrame(master=parent_frame, fg_color="#15141b")
+    content_frame.pack(fill="both", expand=True, padx=30, pady=12)
 
     # Create two sections: User list on left, Add/Edit form on right
-    list_frame = customtkinter.CTkFrame(master=content_frame)
-    list_frame.pack(side="left", fill="both", expand=True, padx=10, pady=10)
+    list_frame = customtkinter.CTkFrame(master=content_frame, fg_color="#22232e", border_width=0, corner_radius=20)
+    list_frame.pack(side="left", fill="both", expand=True, padx=(0, 20))
 
-    form_frame = customtkinter.CTkFrame(master=content_frame)
-    form_frame.pack(side="right", fill="both", expand=True, padx=10, pady=10)
+    form_frame = customtkinter.CTkFrame(master=content_frame, fg_color="#22232e", border_width=0, corner_radius=20)
+    form_frame.pack(side="right", fill="both", expand=True, padx=(20, 0))
 
     # ======= USER LIST SECTION =======
     list_label = customtkinter.CTkLabel(
         master=list_frame,
         text="User List",
-        font=("Arial", 18, "bold")
+        text_color="#e9e8e8",
+        font=("Roboto", 18, "bold")
     )
     list_label.pack(pady=10, anchor="w", padx=10)
 
-    # Search frame
-    search_frame = customtkinter.CTkFrame(master=list_frame, fg_color="transparent")
-    search_frame.pack(fill="x", padx=10, pady=(5, 10))
-
-    search_entry = customtkinter.CTkEntry(
-        master=search_frame,
-        placeholder_text="Search users...",
-        width=200
-    )
-    search_entry.pack(side="left", padx=(0, 10))
-
-    search_button = customtkinter.CTkButton(
-        master=search_frame,
-        text="Search",
-        width=100
-    )
-    search_button.pack(side="left")
-
-    # User list display - Using a frame with scrollbar and labels
+    # User list display with scrollbar
     user_list_container = customtkinter.CTkScrollableFrame(
         master=list_frame,
         width=400,
-        height=500
+        height=500,
+        scrollbar_button_color="#565B73",
+        scrollbar_button_hover_color="#6B7089",
+        border_width=0,
+        fg_color="#22222f"
     )
-    user_list_container.pack(fill="both", expand=True, padx=10, pady=10)
+    user_list_container.pack(fill="both", expand=True, padx=4, pady=(0,20))
 
     # ======= ADD/EDIT USER FORM =======
     form_label = customtkinter.CTkLabel(
         master=form_frame,
         text="Add New User",
-        font=("Arial", 18, "bold")
+        text_color="#e9e8e8",
+        font=("Roboto", 18, "bold")
     )
     form_label.pack(pady=10, anchor="w", padx=10)
 
-    # Form fields
-    fields_frame = customtkinter.CTkFrame(master=form_frame, fg_color="transparent")
-    fields_frame.pack(fill="both", expand=True, padx=20, pady=10)
+    # Form fields container
+    fields_frame = customtkinter.CTkFrame(master=form_frame, fg_color="transparent", border_width=0)
+    fields_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
     # User type selection (User vs Client Machine)
-    type_frame = customtkinter.CTkFrame(master=fields_frame, fg_color="transparent")
+    type_frame = customtkinter.CTkFrame(master=fields_frame, fg_color="transparent", border_width=0)
     type_frame.pack(fill="x", pady=10)
 
-    type_label = customtkinter.CTkLabel(master=type_frame, text="Type:", width=100)
+    type_label = customtkinter.CTkLabel(
+        master=type_frame,
+        text="Type:",
+        width=100,
+        text_color="#e9e8e8",
+        font=("Roboto", 12, "bold"),
+        anchor="w"
+    )
     type_label.pack(side="left")
 
     type_var = tk.StringVar(value="User")
@@ -90,59 +137,136 @@ def open_userm_page(parent_frame):
         master=type_frame,
         width=180,
         values=["User", "Client Machine"],
-        variable=type_var
+        variable=type_var,
+        border_width=0,
+        fg_color="#293046",
+        button_color="#293046",
+        dropdown_fg_color="#293046",
+        dropdown_font=("Roboto Medium", 12),
+        dropdown_text_color="#e9e8e8",
+        corner_radius=12,
+        text_color="#b1b4c9",
     )
     type_combobox.pack(side="left", padx=10)
 
     # User section - contains fields for human users
-    user_section = customtkinter.CTkFrame(master=fields_frame, fg_color="transparent")
+    user_section = customtkinter.CTkFrame(master=fields_frame, fg_color="transparent", border_width=0)
     user_section.pack(fill="x", pady=10)
 
-    # First row - Name fields (for users only)
-    name_frame = customtkinter.CTkFrame(master=user_section, fg_color="transparent")
-    name_frame.pack(fill="x", pady=5)
+    # First Name field
+    firstname_frame = customtkinter.CTkFrame(master=user_section, fg_color="transparent", border_width=0)
+    firstname_frame.pack(fill="x", pady=5)
 
-    firstname_label = customtkinter.CTkLabel(master=name_frame, text="First Name:", width=100)
+    firstname_label = customtkinter.CTkLabel(
+        master=firstname_frame,
+        text="First Name:",
+        width=100,
+        text_color="#e9e8e8",
+        font=("Roboto", 12, "bold"),
+        anchor="w"
+    )
     firstname_label.pack(side="left")
 
-    firstname_entry = customtkinter.CTkEntry(master=name_frame, width=270)
+    firstname_entry = customtkinter.CTkEntry(
+        master=firstname_frame,
+        width=270,
+        border_width=0,
+        fg_color="#293046",
+        text_color="#e9e8e8",
+        placeholder_text_color="#b1b4c9",
+        corner_radius=12
+
+    )
     firstname_entry.pack(side="left", padx=10)
 
     # Last Name field
-    lastname_frame = customtkinter.CTkFrame(master=user_section, fg_color="transparent")
+    lastname_frame = customtkinter.CTkFrame(master=user_section, fg_color="transparent", border_width=0)
     lastname_frame.pack(fill="x", pady=5)
 
-    lastname_label = customtkinter.CTkLabel(master=lastname_frame, text="Last Name:", width=100)
+    lastname_label = customtkinter.CTkLabel(
+        master=lastname_frame,
+        text="Last Name:",
+        width=100,
+        text_color="#e9e8e8",
+        font=("Roboto", 12, "bold"),
+        anchor="w"
+    )
     lastname_label.pack(side="left")
 
-    lastname_entry = customtkinter.CTkEntry(master=lastname_frame, width=270)
+    lastname_entry = customtkinter.CTkEntry(
+        master=lastname_frame,
+        width=270,
+        border_width=0,
+        fg_color="#293046",
+        text_color="#e9e8e8",
+        placeholder_text_color="#b1b4c9",
+        corner_radius=12
+    )
     lastname_entry.pack(side="left", padx=10)
 
-    # Username field (for users only)
-    username_frame = customtkinter.CTkFrame(master=user_section, fg_color="transparent")
+    # Username field
+    username_frame = customtkinter.CTkFrame(master=user_section, fg_color="transparent", border_width=0)
     username_frame.pack(fill="x", pady=5)
 
-    username_label = customtkinter.CTkLabel(master=username_frame, text="Username:", width=100)
+    username_label = customtkinter.CTkLabel(
+        master=username_frame,
+        text="Username:",
+        width=100,
+        text_color="#e9e8e8",
+        font=("Roboto", 12, "bold"),
+        anchor="w"
+    )
     username_label.pack(side="left")
 
-    username_entry = customtkinter.CTkEntry(master=username_frame, width=270)
+    username_entry = customtkinter.CTkEntry(
+        master=username_frame,
+        width=270,
+        border_width=0,
+        fg_color="#293046",
+        text_color="#e9e8e8",
+        placeholder_text_color="#b1b4c9",
+        corner_radius=12
+    )
     username_entry.pack(side="left", padx=10)
 
-    # Password field (for users only)
-    password_frame = customtkinter.CTkFrame(master=user_section, fg_color="transparent")
+    # Password field
+    password_frame = customtkinter.CTkFrame(master=user_section, fg_color="transparent", border_width=0)
     password_frame.pack(fill="x", pady=5)
 
-    password_label = customtkinter.CTkLabel(master=password_frame, text="Password:", width=100)
+    password_label = customtkinter.CTkLabel(
+        master=password_frame,
+        text="Password:",
+        width=100,
+        text_color="#e9e8e8",
+        font=("Roboto", 12, "bold"),
+        anchor="w"
+    )
     password_label.pack(side="left")
 
-    password_entry = customtkinter.CTkEntry(master=password_frame, width=270, show="*")
+    password_entry = customtkinter.CTkEntry(
+        master=password_frame,
+        width=270,
+        show="*",
+        border_width=0,
+        fg_color="#293046",
+        text_color="#e9e8e8",
+        placeholder_text_color="#b1b4c9",
+        corner_radius=12
+    )
     password_entry.pack(side="left", padx=10)
 
-    # Role selection (for users only)
-    role_frame = customtkinter.CTkFrame(master=user_section, fg_color="transparent")
+    # Role selection
+    role_frame = customtkinter.CTkFrame(master=user_section, fg_color="transparent", border_width=0)
     role_frame.pack(fill="x", pady=5)
 
-    role_label = customtkinter.CTkLabel(master=role_frame, text="Role:", width=100)
+    role_label = customtkinter.CTkLabel(
+        master=role_frame,
+        text="Role:",
+        width=100,
+        text_color="#e9e8e8",
+        font=("Roboto", 12, "bold"),
+        anchor="w"
+    )
     role_label.pack(side="left")
 
     role_var = tk.StringVar(value="admin")
@@ -150,38 +274,83 @@ def open_userm_page(parent_frame):
         master=role_frame,
         width=180,
         values=["admin", "it staff", "viewer"],
-        variable=role_var
+        variable=role_var,
+        border_width=0,
+        fg_color="#293046",
+        button_color="#293046",
+        dropdown_fg_color="#293046",
+        dropdown_font=("Roboto Medium", 12),
+        dropdown_text_color="#e9e8e8",
+        corner_radius=12,
+        text_color="#b1b4c9"
     )
     role_combobox.pack(side="left", padx=10)
 
     # Client machine section - contains fields for computer entries
-    client_section = customtkinter.CTkFrame(master=fields_frame, fg_color="transparent")
+    client_section = customtkinter.CTkFrame(master=fields_frame, fg_color="transparent", border_width=0)
 
-    # Computer name field (only for client machines)
-    computer_frame = customtkinter.CTkFrame(master=client_section, fg_color="transparent")
+    # Computer name field
+    computer_frame = customtkinter.CTkFrame(master=client_section, fg_color="transparent", border_width=0)
     computer_frame.pack(fill="x", pady=10)
 
-    computer_label = customtkinter.CTkLabel(master=computer_frame, text="Computer Name:", width=100)
+    computer_label = customtkinter.CTkLabel(
+        master=computer_frame,
+        text="Computer Name:",
+        width=100,
+        text_color="#e9e8e8",
+        font=("Roboto", 12, "bold"),
+        anchor="w"
+    )
     computer_label.pack(side="left")
 
-    computer_entry = customtkinter.CTkEntry(master=computer_frame, width=270)
+    computer_entry = customtkinter.CTkEntry(
+        master=computer_frame,
+        width=270,
+        border_width=0,
+        fg_color="#293046",
+        text_color="#e9e8e8",
+        placeholder_text_color="#b1b4c9",
+        corner_radius=12
+    )
     computer_entry.pack(side="left", padx=10)
 
-    # Location field (optional, for client machines)
-    location_frame = customtkinter.CTkFrame(master=client_section, fg_color="transparent")
+    # Location field
+    location_frame = customtkinter.CTkFrame(master=client_section, fg_color="transparent", border_width=0)
     location_frame.pack(fill="x", pady=5)
 
-    location_label = customtkinter.CTkLabel(master=location_frame, text="Location:", width=100)
+    location_label = customtkinter.CTkLabel(
+        master=location_frame,
+        text="Location:",
+        width=100,
+        text_color="#e9e8e8",
+        font=("Roboto", 12, "bold"),
+        anchor="w"
+    )
     location_label.pack(side="left")
 
-    location_entry = customtkinter.CTkEntry(master=location_frame, width=270)
+    location_entry = customtkinter.CTkEntry(
+        master=location_frame,
+        width=270,
+        border_width=0,
+        fg_color="#293046",
+        text_color="#e9e8e8",
+        placeholder_text_color="#b1b4c9",
+        corner_radius=12
+    )
     location_entry.pack(side="left", padx=10)
 
     # Status frame (common for both users and clients)
-    status_frame = customtkinter.CTkFrame(master=fields_frame, fg_color="transparent")
+    status_frame = customtkinter.CTkFrame(master=fields_frame, fg_color="transparent", border_width=0)
     status_frame.pack(fill="x", pady=10)
 
-    status_label = customtkinter.CTkLabel(master=status_frame, text="Status:", width=100)
+    status_label = customtkinter.CTkLabel(
+        master=status_frame,
+        text="Status:",
+        width=100,
+        text_color="#e9e8e8",
+        font=("Roboto", 12, "bold"),
+        anchor="w"
+    )
     status_label.pack(side="left")
 
     status_var = tk.BooleanVar(value=True)
@@ -190,12 +359,14 @@ def open_userm_page(parent_frame):
         text="Active",
         variable=status_var,
         onvalue=True,
-        offvalue=False
+        offvalue=False,
+        text_color="#e9e8e8",
+        font=("Roboto", 12)
     )
     status_switch.pack(side="left", padx=10)
 
     # Button frame
-    button_frame = customtkinter.CTkFrame(master=fields_frame, fg_color="transparent")
+    button_frame = customtkinter.CTkFrame(master=fields_frame, fg_color="transparent", border_width=0)
     button_frame.pack(fill="x", pady=20)
 
     # Function to toggle between user and client machine forms
@@ -239,7 +410,9 @@ def open_userm_page(parent_frame):
         master=button_frame,
         text="Reset",
         width=100,
-        fg_color="#586b78",
+        fg_color="#565B73",
+        hover_color="#6B7089",
+        corner_radius=28,
         command=reset_form
     )
     reset_button.pack(side="left", padx=(0, 10))
@@ -370,6 +543,7 @@ def open_userm_page(parent_frame):
         master=button_frame,
         text="Add User",
         width=150,
+        corner_radius=28,
         command=save_user
     )
     save_button.pack(side="right", padx=10)
@@ -407,6 +581,17 @@ def open_userm_page(parent_frame):
                      search_term in user.get("last_name", "").lower() or
                      search_term in user.get("role", "").lower()]
 
+        # Apply filter
+        filter_choice = filter_var.get()
+        if filter_choice == "Users":
+            users = [u for u in users if u.get("role") != "client machine"]
+        elif filter_choice == "Client Machines":
+            users = [u for u in users if u.get("role") == "client machine"]
+        elif filter_choice == "Admins":
+            users = [u for u in users if u.get("role") == "admin"]
+        elif filter_choice == "IT Staff":
+            users = [u for u in users if u.get("role") == "it staff"]
+
         # Sort users: clients first, then users by role
         def sort_key(user):
             # Client machines first, then by role importance
@@ -429,82 +614,99 @@ def open_userm_page(parent_frame):
         # Display users
         for i, user in enumerate(users):
             # Create a frame for this user row
-            user_frame = customtkinter.CTkFrame(master=user_list_container)
-            user_frame.pack(fill="x", pady=5, padx=5)
+            user_frame = customtkinter.CTkFrame(
+                master=user_list_container,
+                fg_color="#283146",
+                corner_radius=12,
+                height=60
+            )
+            user_frame.pack(fill="x", pady=5, padx=8)
 
             # Status indicator (colored dot)
             status_color = "#1b720f" if user.get("active", True) else "#63003d"
             status_indicator = customtkinter.CTkFrame(
                 master=user_frame,
-                width=15,
-                height=15,
-                corner_radius=10,
+                width=12,
+                height=12,
+                corner_radius=6,
                 fg_color=status_color
             )
-            status_indicator.pack(side="left", padx=10)
+            status_indicator.pack(side="left", padx=(10, 8), pady=10)
 
-            # User type icon (different for clients and users)
-            type_text = "🖥️" if user.get("role") == "client machine" else "👤"
-            type_label = customtkinter.CTkLabel(
-                master=user_frame,
-                text=type_text,
-                font=("Arial", 14)
-            )
-            type_label.pack(side="left", padx=3)
+            # User info container
+            info_container = customtkinter.CTkFrame(master=user_frame, fg_color="transparent", border_width=0)
+            info_container.pack(side="left", fill="both", expand=True, padx=5, pady=10)
 
             # Username and role
             if user.get("role") == "client machine":
-                display_text = f"{user.get('username')} (Client)"
+                display_text = f"🖥️ {user.get('username')} (Client)"
+                role_color = "#748498"
             else:
-                display_text = f"{user.get('username')} ({user.get('role', 'unknown')})"
+                display_text = f"👤 {user.get('username')} ({user.get('role', 'unknown')})"
+                role_color = "#e9e8e8"
 
             username_label = customtkinter.CTkLabel(
-                master=user_frame,
+                master=info_container,
                 text=display_text,
-                font=("Arial", 12, "bold")
+                font=("Roboto", 12, "bold"),
+                text_color="#e9e8e8",
+                anchor="w"
             )
-            username_label.pack(side="left", padx=5)
+            username_label.pack(anchor="w")
 
-            # For users, show full name
+            # For users, show full name; for clients, show location
             if user.get("role") != "client machine":
                 name_text = f"{user.get('first_name', '')} {user.get('last_name', '')}"
-                name_label = customtkinter.CTkLabel(
-                    master=user_frame,
-                    text=name_text,
-                    font=("Arial", 12)
-                )
-                name_label.pack(side="left", padx=5)
+                if name_text.strip():
+                    name_label = customtkinter.CTkLabel(
+                        master=info_container,
+                        text=name_text,
+                        font=("Roboto", 10),
+                        text_color="#b1b4c9",
+                        anchor="w"
+                    )
+                    name_label.pack(anchor="w")
+            else:
+                if user.get("location"):
+                    location_text = f"📍 {user.get('location')}"
+                    location_label = customtkinter.CTkLabel(
+                        master=info_container,
+                        text=location_text,
+                        font=("Roboto", 10),
+                        text_color="#b1b4c9",
+                        anchor="w"
+                    )
+                    location_label.pack(anchor="w")
 
-            # For clients, show location if available
-            if user.get("role") == "client machine" and user.get("location"):
-                location_text = f"({user.get('location')})"
-                location_label = customtkinter.CTkLabel(
-                    master=user_frame,
-                    text=location_text,
-                    font=("Arial", 12)
-                )
-                location_label.pack(side="left", padx=5)
+            # Button container
+            button_container = customtkinter.CTkFrame(master=user_frame, fg_color="transparent", border_width=0)
+            button_container.pack(side="right", padx=10, pady=10)
 
             # Edit button
             edit_button = customtkinter.CTkButton(
-                master=user_frame,
+                master=button_container,
                 text="Edit",
                 width=60,
                 height=25,
+                corner_radius=20,
+                font=("Roboto", 10),
                 command=lambda u=user: edit_user(u)
             )
-            edit_button.pack(side="right", padx=5)
+            edit_button.pack(side="right", padx=(5, 0))
 
             # Delete button
             delete_button = customtkinter.CTkButton(
-                master=user_frame,
+                master=button_container,
                 text="Delete",
                 width=60,
                 height=25,
+                corner_radius=20,
+                font=("Roboto", 10),
                 fg_color="#63003d",
+                hover_color="#7a0049",
                 command=lambda u=user: delete_user(u)
             )
-            delete_button.pack(side="right", padx=5)
+            delete_button.pack(side="right", padx=(5, 5))
 
     def edit_user(user):
         """Populate the form with user data for editing"""
@@ -579,9 +781,11 @@ def open_userm_page(parent_frame):
             # Show success message
             messagebox.showinfo("Success", f"{user_type.capitalize()} '{username}' deleted successfully!")
 
-    # Connect search button
+    # Connect search and filter functions
     search_button.configure(command=refresh_user_list)
     search_entry.bind("<Return>", lambda event: refresh_user_list())
+    filter_combobox.configure(command=lambda _: refresh_user_list())
+    refresh_button.configure(command=refresh_user_list)
 
     # Initial form setup
     toggle_form_type("User")

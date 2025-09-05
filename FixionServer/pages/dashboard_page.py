@@ -3,6 +3,7 @@ import tkinter
 import os
 import sys
 from PIL import Image
+from docutils.nodes import sidebar
 
 # Import pages - each in a separate file
 from clientmachine_page import open_clientmachine_page
@@ -53,19 +54,17 @@ def clear_frame(frame):
 
 
 def open_dashboard_content(parent_frame):
-    """
-    Dashboard main content page
-    """
-    # Clear the frame first
     clear_frame(parent_frame)
-
     # Page title
     title = customtkinter.CTkLabel(
         master=parent_frame,
         text="Dashboard Overview",
-        font=("Arial", 24, "bold")
+        font=("Roboto", 24, "bold"),
+        text_color= "#e9e8e8"
     )
+
     title.pack(padx=14, pady=(0,3), anchor="w")
+
 
 
 
@@ -76,20 +75,34 @@ def open_dashboard_page(user_info=None):
     Args:
         user_info (dict): User information dictionary containing username, role, etc.
     """
-    dashboard = customtkinter.CTk()
-    dashboard.title('Server UI Dashboard')
+    mainframe = customtkinter.CTk(fg_color="#15141b")
+    mainframe.title('Server UI Dashboard')
 
     # Set dimensions and center the window
+
     width, height = 1100, 750
     center_window(dashboard, width, height)
 
+
     # Create the main layout frames
-    sidebar_frame = customtkinter.CTkFrame(master=dashboard, width=250, corner_radius=0)
+    sidebar_frame = customtkinter.CTkFrame(master=mainframe, width=118, corner_radius=24,fg_color="#122a3e")
     sidebar_frame.pack(side="left", fill="y")
 
+    sidebarinv_frame = customtkinter.CTkFrame(
+        sidebar_frame,
+        fg_color="#122a3e",
+        width=20,
+        height=800,  # Match your window height
+        corner_radius=0
+    )
+    sidebarinv_frame.place(x=0, y=0)  # Position at the very left
+
+    # Ensure the sidebar_frame maintains its width
+    sidebar_frame.pack_propagate(False)
+
     # Main content area
-    main_content = customtkinter.CTkFrame(master=dashboard)
-    main_content.pack(side="right", fill="both", expand=True, padx=20, pady=20)
+    main_content = customtkinter.CTkFrame(master=mainframe, fg_color="#15141b", border_width=0)
+    main_content.pack(side="right", fill="both", expand=True)
 
     # Create sidebar items with their corresponding page functions and icons - updated icon filenames
     sidebar_items = [
@@ -97,39 +110,35 @@ def open_dashboard_page(user_info=None):
         {"name": "Client machine", "page": open_clientmachine_page, "icon": "client_machine_icon.png"},
         {"name": "Threat logs", "page": open_threatlogs_page, "icon": "threat_logs_icon.png"},
         {"name": "Analytics", "page": open_analytics_page, "icon": "analytics_icon.png"},
-        {"name": "Snapshots & Rollbacks", "page": open_snapshot_page, "icon": "snapshot_icon.png"},
+        {"name": "Snapshots", "page": open_snapshot_page, "icon": "snapshot_icon.png"},
         {"name": "Cloud Backups", "page": open_cloud_page, "icon": "cloud_icon.png"},
         {"name": "User Management", "page": open_userm_page, "icon": "userm_icon.png"},
         {"name": "System Settings", "page": open_systems_page, "icon": "systems_icon.png"}
     ]
 
-    # Add logo at the top of sidebar
-    try:
-        logo_path = os.path.join(assets_path, "icon", "logo.png")
-        print(f"Trying to load logo from: {logo_path}")
-        logo_image = customtkinter.CTkImage(
+    logo_path = os.path.join(os.path.dirname(__file__), "logo", "fixion_logo.png")
+    print(f"Trying to load logo from: {logo_path}")
+    logo_image = customtkinter.CTkImage(
             light_image=Image.open(logo_path),
+
             dark_image=Image.open(logo_path),
             size=(60, 60)
         )
 
-        logo_label = customtkinter.CTkLabel(
+
+    logo_label = customtkinter.CTkLabel(
             master=sidebar_frame,
             image=logo_image,
             text=""
-        )
-        logo_label.pack(padx=40, pady=30)
-    except Exception as e:
-        print(f"Failed to load logo {logo_path}: {e}")
-        # Fallback to empty frame as placeholder
-        logo_frame = customtkinter.CTkFrame(master=sidebar_frame, width=100, height=100)
-        logo_frame.pack(padx=40, pady=20)
+    )
+    logo_label.pack(padx=8, pady=12)
+
 
     # Add sidebar navigation buttons with vertical layout (icon above text)
     for item in sidebar_items:
         # Create a frame for the button (vertical layout)
         item_frame = customtkinter.CTkFrame(master=sidebar_frame, fg_color="transparent")
-        item_frame.pack(fill="x", padx=15, pady=4)  # Increased padding for better spacing
+        item_frame.pack(fill="x", padx=2, pady=4)  # Increased padding for better spacing
 
         # Load icon image
         icon_path = os.path.join(assets_path, "icon", item["icon"])
@@ -142,7 +151,9 @@ def open_dashboard_page(user_info=None):
             icon_image = customtkinter.CTkImage(
                 light_image=Image.open(icon_path),
                 dark_image=Image.open(icon_path),
+
                 size=(25, 25)  # Increased from 30x30 to 45x45
+
             )
 
             # Create a label with the icon image
@@ -167,10 +178,13 @@ def open_dashboard_page(user_info=None):
         item_label = customtkinter.CTkLabel(
             master=item_frame,
             text=item["name"],
+
             font=("Arial", 11),
+
             anchor="center"  # Center the text
         )
         item_label.pack(pady=(5, 5))
+
 
         # Create function to handle navigation with the correct page
         def create_click_handler(page_func):
@@ -181,13 +195,15 @@ def open_dashboard_page(user_info=None):
         icon_element.bind("<Button-1>", create_click_handler(item["page"]))
         item_label.bind("<Button-1>", create_click_handler(item["page"]))
 
+
+
     # Open dashboard content by default
     open_dashboard_content(main_content)
 
     if user_info:
-        dashboard.title(f'Server UI Dashboard - Logged in as {user_info["username"]}')
+        mainframe.title(f'Server UI Dashboard - Logged in as {user_info["username"]}')
 
-    dashboard.mainloop()
+    mainframe.mainloop()
 
 
 if __name__ == "__main__":

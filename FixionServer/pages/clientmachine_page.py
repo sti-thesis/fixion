@@ -10,7 +10,7 @@ import random  # For demo purposes to simulate machine statuses
 def open_clientmachine_page(parent_frame):
     """
     Clean client machine management page for anti-virus system
-    Shows connected machines, their status, and allows remote actions
+    Shows connected machines in grid view with status and name only
     """
     # Clear the frame first
     for widget in parent_frame.winfo_children():
@@ -20,28 +20,34 @@ def open_clientmachine_page(parent_frame):
     title = customtkinter.CTkLabel(
         master=parent_frame,
         text="Client Machine Management",
-        font=("Arial", 24, "bold")
+        font=("Roboto", 24, "bold"),
+        text_color="#e9e8e8"
     )
-    title.pack(pady=(20, 10), anchor="w", padx=20)
+    title.pack(anchor="w", padx=(12,0), pady= (12,0))
 
     # Search and filter section - directly on parent frame
     search_frame = customtkinter.CTkFrame(parent_frame, fg_color="transparent", border_width=0)
-    search_frame.pack(fill="x", padx=20, pady=10,)
+    search_frame.pack(fill="x", padx=(30,0), pady= (18,0))
 
     search_entry = customtkinter.CTkEntry(
         master=search_frame,
         placeholder_text="Search machines...",
-        text_color="White",
-        width=200
+        width=200,
+        border_width=0,
+        fg_color="#22222f",
+        text_color="#e9e8e8",
+        placeholder_text_color="#b1b4c9",
+        corner_radius=12
     )
-    search_entry.grid(row=0, column=0, padx=(10, 5), pady=10, sticky="w")
+    search_entry.grid(row=0, column=0, sticky="w")
 
     search_button = customtkinter.CTkButton(
         master=search_frame,
         text="Search",
-        width=80
+        width=80,
+        corner_radius=28
     )
-    search_button.grid(row=0, column=1, padx=5, pady=10, sticky="w")
+    search_button.grid(row=0, column=1, padx=(5,0), sticky="w")
 
     # Filter dropdown
     filter_var = tk.StringVar(value="All")
@@ -49,67 +55,79 @@ def open_clientmachine_page(parent_frame):
         master=search_frame,
         width=120,
         values=["All", "Online", "Offline", "Compromised"],
-        variable=filter_var
+        variable=filter_var,
+        border_width=0,
+        fg_color="#22222f",
+        button_color="#22222f",
+        dropdown_fg_color="#22222f",
+        dropdown_font=("Roboto Medium", 12),
+        dropdown_text_color="#e9e8e8",
+        corner_radius=12,
+        text_color="#b1b4c9",
+
     )
-    filter_combobox.grid(row=0, column=2, padx=(20, 5), pady=10, sticky="w")
+    filter_combobox.grid(row=0, column=2, padx=(20, 5), sticky="w")
 
     # Refresh button
     refresh_button = customtkinter.CTkButton(
         master=search_frame,
         text="Refresh List",
-        width=120
+        width=120,
+        corner_radius=28
     )
-    refresh_button.grid(row=0, column=3, padx=(20, 10), pady=10, sticky="e")
+    refresh_button.grid(row=0, column=3, padx=(20, 10), sticky="e")
 
     # Main content frame with two sections
-    content_frame = customtkinter.CTkFrame(master=parent_frame, fg_color="transparent", border_width=0)
-    content_frame.pack(fill="both", expand=True, padx=20, pady=10)
+    content_frame = customtkinter.CTkFrame(master=parent_frame,fg_color="#15141b")
+    content_frame.pack(fill="both", expand=True, padx=30,pady=12)
 
-    # Create two sections: Machine list on left, Details/Actions on right
-    list_frame = customtkinter.CTkFrame(master=content_frame)
-    list_frame.pack(side="left", fill="both", expand=True, padx=(0, 10))
+    # Create two sections: Machine grid on left, Details/Actions on right
+    list_frame = customtkinter.CTkFrame(master=content_frame, fg_color="#22232e",border_width=0, corner_radius=20 )
+    list_frame.pack(side="left", fill="both", expand=True, padx=(0, 20))
 
-    details_frame = customtkinter.CTkFrame(master=content_frame)
-    details_frame.pack(side="right", fill="both", expand=True, padx=(10, 0))
+    details_frame = customtkinter.CTkFrame(master=content_frame, fg_color="#22232e",border_width=0, corner_radius=20 )
+    details_frame.pack(side="right", fill="both", expand=True, padx=(20, 0))
 
-    # ======= CLIENT MACHINE LIST SECTION =======
+    # ======= CLIENT MACHINE GRID SECTION =======
     list_label = customtkinter.CTkLabel(
         master=list_frame,
         text="Registered Machines",
-        font=("Arial", 18, "bold")
+        text_color="#e9e8e8",
+        font=("Roboto", 18, "bold")
     )
     list_label.pack(pady=10, anchor="w", padx=10)
 
-    # Machines list with scrollbar - improved container with conditional scrollbar
-    machines_list_container = customtkinter.CTkScrollableFrame(
+    # Machines grid with scrollbar
+    machines_grid_container = customtkinter.CTkScrollableFrame(
         master=list_frame,
         width=400,
         height=500,
         scrollbar_button_color="#565B73",
-        scrollbar_button_hover_color="#6B7089",border_width=0
-
+        scrollbar_button_hover_color="#6B7089",
+        border_width=0,
+        fg_color="#22222f"
     )
-
-    machines_list_container.pack(fill="both", expand=True, padx=0, pady=0)
-
+    machines_grid_container.pack(fill="both", expand=True, padx=4, pady=(0,20))
 
     # ======= MACHINE DETAILS SECTION =======
     details_label = customtkinter.CTkLabel(
         master=details_frame,
         text="Machine Details",
-        font=("Arial", 18, "bold")
+        text_color="#e9e8e8",
+        font=("Roboto", 18, "bold")
     )
     details_label.pack(pady=10, anchor="w", padx=10)
 
     # Machine info section - no extra container
-    info_display_frame = customtkinter.CTkFrame(master=details_frame, fg_color="transparent", border_width=0)
+    info_display_frame = customtkinter.CTkFrame(master=details_frame, fg_color="transparent", border_width=0,)
     info_display_frame.pack(fill="x", padx=2, pady=10)
 
     # Initial empty state
     no_selection_label = customtkinter.CTkLabel(
         master=info_display_frame,
         text="Select a machine to view details",
-        font=("Arial", 14)
+        text_color="#e9e8e8",
+        font=("Roboto", 14)
     )
     no_selection_label.pack(pady=20)
 
@@ -184,7 +202,8 @@ def open_clientmachine_page(parent_frame):
         name_label = customtkinter.CTkLabel(
             master=info_display_frame,
             text=machine.get("username", "Unknown Machine"),
-            font=("Arial", 16, "bold")
+            font=("Roboto", 16, "bold"),
+            text_color="#e9e8e8"
         )
         name_label.pack(anchor="w", pady=(10, 15), padx=12)
 
@@ -215,7 +234,8 @@ def open_clientmachine_page(parent_frame):
         status_label = customtkinter.CTkLabel(
             master=status_container,
             text=f"Status: {status_text}",
-            font=("Arial", 13, "bold")
+            font=("Roboto", 14, "bold"),
+            text_color="#e9e8e8"
         )
         status_label.pack(side="left")
 
@@ -236,7 +256,8 @@ def open_clientmachine_page(parent_frame):
             customtkinter.CTkLabel(
                 master=info_grid,
                 text=label_text,
-                font=("Arial", 12, "bold"),
+                text_color="#e9e8e8",
+                font=("Roboto", 12, "bold"),
                 anchor="w"
             ).grid(row=row, column=0, sticky="w", pady=5, padx=(0, 20))
 
@@ -248,7 +269,7 @@ def open_clientmachine_page(parent_frame):
             customtkinter.CTkLabel(
                 master=info_grid,
                 text=value_text,
-                font=("Arial", 12),
+                font=("Roboto", 12),
                 text_color=value_color,
                 anchor="w"
             ).grid(row=row, column=1, sticky="w", pady=5)
@@ -269,7 +290,8 @@ def open_clientmachine_page(parent_frame):
         actions_title = customtkinter.CTkLabel(
             master=actions_display_frame,
             text="Remote Actions",
-            font=("Arial", 16, "bold")
+            font=("Roboto", 16, "bold"),
+            text_color="#e9e8e8"
         )
         actions_title.pack(anchor="w", pady=(0, 15))
 
@@ -323,15 +345,6 @@ def open_clientmachine_page(parent_frame):
         )
         isolate_button.grid(row=2, column=0, padx=(0, 10), pady=5, sticky="w")
 
-        remote_button = customtkinter.CTkButton(
-            master=buttons_grid,
-            text="Remote Desktop",
-            state="normal" if machine.get("status") == "Online" else "disabled",
-            command=lambda: handle_action("remote", machine),
-            width=140
-        )
-        remote_button.grid(row=2, column=1, padx=10, pady=5, sticky="w")
-
     def handle_action(action, machine):
         """Handle the remote actions for machines"""
         machine_name = machine.get("username", "Unknown")
@@ -378,29 +391,10 @@ def open_clientmachine_page(parent_frame):
         if hasattr(handle_action, "selected_machine") and handle_action.selected_machine == machine["id"]:
             show_machine_details(machine)
 
-    def update_scrollbar_visibility():
-        """Update scrollbar visibility based on content"""
-        # Get the scrollable frame's internal frame
-        inner_frame = machines_list_container._parent_canvas
-
-        # Update the canvas to make sure scrollregion is current
-        machines_list_container.update_idletasks()
-
-        # Check if scrolling is needed
-        canvas_height = inner_frame.winfo_height()
-        scroll_height = inner_frame.bbox("all")
-
-        if scroll_height and scroll_height[3] > canvas_height:
-            # Content is larger than visible area, scrollbar should be visible
-            machines_list_container._scrollbar.grid()
-        else:
-            # Content fits in visible area, hide scrollbar
-            machines_list_container._scrollbar.grid_remove()
-
     def refresh_machines_list():
-        """Refresh the list of machines with current filter applied"""
-        # Clear current list
-        for widget in machines_list_container.winfo_children():
+        """Refresh the grid of machines with current filter applied"""
+        # Clear current grid
+        for widget in machines_grid_container.winfo_children():
             widget.destroy()
 
         # Load machines
@@ -430,21 +424,26 @@ def open_clientmachine_page(parent_frame):
 
         machines.sort(key=sort_key)
 
-        # Display machines with clean design
-        for machine in machines:
-            # Create a clean frame for this machine row
-            machine_frame = customtkinter.CTkFrame(
-                master=machines_list_container,
+        # Create grid layout - 3 columns
+        columns = 5
+        for i, machine in enumerate(machines):
+            row = i // columns
+            col = i % columns
+
+            # Create compact machine card
+            machine_card = customtkinter.CTkFrame(
+                master=machines_grid_container,
                 fg_color="#283146",
-                corner_radius=8
+                corner_radius=12,
+                width=120,
+                height=80
             )
-            machine_frame.pack(fill="x", pady=3, padx=(0,6))
+            machine_card.grid(row=row, column=col, padx=8, pady=8, sticky="ew")
 
-            # Content container
-            content_container = customtkinter.CTkFrame(machine_frame, fg_color="transparent", border_width=0)
-            content_container.pack(fill="x", padx=10, pady=8)
+            # Configure column weights for even spacing
+            machines_grid_container.grid_columnconfigure(col, weight=1)
 
-            # Status indicator (colored dot)
+            # Status indicator at top
             status = machine.get("status", "Offline")
             status_color = {
                 "Online": "#1b720f",  # Green
@@ -452,64 +451,56 @@ def open_clientmachine_page(parent_frame):
                 "Compromised": "#63003d"  # Red
             }.get(status, "#748498")
 
+            # Status indicator circle
             status_indicator = customtkinter.CTkFrame(
-                master=content_container,
-                width=10,
-                height=10,
-                corner_radius=5,
+                master=machine_card,
+                width=12,
+                height=12,
+                corner_radius=12,
                 fg_color=status_color
-
             )
-            status_indicator.pack(side="left", padx=(0, 10))
-
-            # Machine info container
-            info_container = customtkinter.CTkFrame(content_container, fg_color="transparent", border_width=0)
-            info_container.pack(side="left", fill="x", expand=True)
+            status_indicator.pack(pady=(8, 4))
 
             # Machine name
             machine_name = customtkinter.CTkLabel(
-                master=info_container,
+                master=machine_card,
                 text=machine.get("username", "Unknown"),
-                font=("Arial", 13, "bold"),
-                anchor="w"
+                font=("Roboto", 12, "bold"),
+                text_color="#e9e8e8",
+                wraplength=100
             )
-            machine_name.pack(anchor="w")
+            machine_name.pack(pady=(0, 4))
 
-            # Location and status info
-            if machine.get("location"):
-                location_text = f"{machine.get('location')} • {status}"
-                location_label = customtkinter.CTkLabel(
-                    master=info_container,
-                    text=location_text,
-                    font=("Arial", 11),
-                    text_color="#9CA3AF",
-                    anchor="w"
-                )
-                location_label.pack(anchor="w")
+            # Status text
+            status_label = customtkinter.CTkLabel(
+                master=machine_card,
+                text=status,
+                font=("Roboto", 10),
+                text_color="#e9e8e8"
+            )
+            status_label.pack(pady=(0, 8))
 
-            # Alert count for compromised machines
+            # Add threat indicator for compromised machines
             if status == "Compromised":
                 threat_count = machine.get("threats_detected", 0)
-                threat_label = customtkinter.CTkLabel(
-                    master=content_container,
+                threat_indicator = customtkinter.CTkLabel(
+                    master=machine_card,
                     text=f"⚠️ {threat_count}",
-                    font=("Arial", 12, "bold"),
+                    font=("Roboto", 9),
                     text_color="#63003d"
                 )
-                threat_label.pack(side="right", padx=(10, 0))
+                threat_indicator.pack()
 
-            # Make the entire row clickable
-            machine_frame.bind("<Button-1>", lambda e, m=machine: select_machine(m))
-            for widget in machine_frame.winfo_children():
-                widget.bind("<Button-1>", lambda e, m=machine: select_machine(m))
-                for subwidget in widget.winfo_children():
-                    subwidget.bind("<Button-1>", lambda e, m=machine: select_machine(m))
+            # Make the entire card clickable
+            def make_click_handler(m):
+                return lambda e: select_machine(m)
 
-        # Update scrollbar visibility after adding all machines
-        machines_list_container.after(100, update_scrollbar_visibility)
+            machine_card.bind("<Button-1>", make_click_handler(machine))
+            for widget in machine_card.winfo_children():
+                widget.bind("<Button-1>", make_click_handler(machine))
 
     def select_machine(machine):
-        """Handle machine selection from the list"""
+        """Handle machine selection from the grid"""
         # Store selected machine ID for reference
         handle_action.selected_machine = machine["id"]
 
@@ -522,5 +513,5 @@ def open_clientmachine_page(parent_frame):
     filter_combobox.configure(command=lambda _: refresh_machines_list())
     refresh_button.configure(command=refresh_machines_list)
 
-    # Initial population of the machines list
+    # Initial population of the machines grid
     refresh_machines_list()

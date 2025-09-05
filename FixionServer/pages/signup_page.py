@@ -5,6 +5,8 @@ import re
 import random
 import smtplib
 from email.message import EmailMessage
+import os
+from PIL import Image
 
 
 def center_window(window, width, height):
@@ -63,11 +65,12 @@ def send_verification_email(email):
 def open_signup_page(current_window):
     current_window.withdraw()
 
-    signup = customtkinter.CTk()
-    signup.title("Signup Page")
+    # Apply same theme as login page
+    signup = customtkinter.CTkToplevel(fg_color="#15141b")
+    signup.title("Sign Up Page")
 
     # Set dimensions and center the window
-    width, height = 500, 850
+    width, height = 700, 850
     center_window(signup, width, height)
 
     # Variables for verification
@@ -102,7 +105,7 @@ def open_signup_page(current_window):
             messagebox.showinfo("Code Sent", f"Verification code sent to {email}!")
             send_code_btn.configure(text="Resend", state="normal")
             email_verified = False
-            verify_status_label.configure(text="Code sent! Enter code and click Verify", text_color="orange")
+            verify_status_label.configure(text="Code sent! Enter code and click Verify", text_color="#e9e8e8")
         else:
             messagebox.showerror("Error",
                                  "Failed to send verification email. Please check your internet connection and try again.")
@@ -126,7 +129,7 @@ def open_signup_page(current_window):
         # Check if the entered code matches the sent code
         if entered_code == verification_code:
             email_verified = True
-            verify_status_label.configure(text="✓ Email Verified", text_color="green")
+            verify_status_label.configure(text="✓ Email Verified", text_color="#047eaf")
             verify_code_btn.configure(state="disabled")
             verification_entry.configure(state="disabled")
             send_code_btn.configure(state="disabled")
@@ -198,103 +201,236 @@ def open_signup_page(current_window):
         except Exception as e:
             print(f"Error during window transition: {e}")
 
-    # Main frame
-    frame = customtkinter.CTkFrame(master=signup, width=400, height=750, corner_radius=18)
+    # Main frame with login theme colors
+    frame = customtkinter.CTkFrame(master=signup, width=500, height=780, corner_radius=18, fg_color="#122a3e")
     frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
 
-    # Logo placeholder
-    logo = customtkinter.CTkFrame(master=frame, width=120, height=120)
-    logo.place(relx=0.5, rely=0.1, anchor=tkinter.CENTER)
+    # Title label with login theme styling
+    label_1 = customtkinter.CTkLabel(
+        master=frame,
+        fg_color="transparent",
+        text="Create your Account",
+        text_color="#e9e8e8",
+        font=("Roboto Medium", 20, "bold")
+    )
+    label_1.place(relx=0.5, rely=0.06, anchor=tkinter.CENTER)
 
-    # Title label
-    label_1 = customtkinter.CTkLabel(master=frame, fg_color="transparent", text="Create an Account",
-                                     font=("Arial", 16, "bold"))
-    label_1.place(relx=0.5, rely=0.18, anchor=tkinter.CENTER)
+    # Logo
+
+    logo_path = os.path.join(os.path.dirname(__file__), "logo", "fixion_logo.png")
+    logo_img = customtkinter.CTkImage(
+            light_image=Image.open(logo_path),
+            size=(120, 120)
+        )
+
+    logo_label = customtkinter.CTkLabel(
+        master=frame,
+        image=logo_img,
+        text=""
+        )
+    logo_label.place(relx=0.5, rely=0.17, anchor=tkinter.CENTER)
+
 
     # Create a frame to hold the first name and last name entries
     name_frame = customtkinter.CTkFrame(master=frame, fg_color="transparent", border_width=0)
-    name_frame.place(relx=0.5, rely=0.25, anchor=tkinter.CENTER)
+    name_frame.place(relx=0.5, rely=0.30, anchor=tkinter.CENTER)
 
-    # First name entry
-    firstname_entry = customtkinter.CTkEntry(master=name_frame, width=145, fg_color="transparent",
-                                             placeholder_text='First Name')
+    # First name entry with login theme
+    firstname_entry = customtkinter.CTkEntry(
+        master=name_frame,
+        width=145,
+        corner_radius=12,
+        border_width=0,
+        fg_color="#22222f",
+        font=("Roboto Medium", 14),
+        text_color="#e9e8e8",
+        placeholder_text='First Name'
+    )
     firstname_entry.grid(row=0, column=0, padx=(0, 5))
 
-    # Last name entry
-    lastname_entry = customtkinter.CTkEntry(master=name_frame, width=145, fg_color="transparent",
-                                            placeholder_text='Last Name')
+    # Last name entry with login theme
+    lastname_entry = customtkinter.CTkEntry(
+        master=name_frame,
+        width=145,
+        corner_radius=12,
+        border_width=0,
+        fg_color="#22222f",
+        font=("Roboto Medium", 14),
+        text_color="#e9e8e8",
+        placeholder_text='Last Name'
+    )
     lastname_entry.grid(row=0, column=1, padx=(5, 0))
 
-    # Email entry
-    email_entry = customtkinter.CTkEntry(master=frame, width=300, fg_color="transparent",
-                                         placeholder_text='Email Address')
-    email_entry.place(relx=0.5, rely=0.32, anchor=tkinter.CENTER)
+    # Email entry with login theme
+    email_entry = customtkinter.CTkEntry(
+        master=frame,
+        width=300,
+        corner_radius=12,
+        border_width=0,
+        fg_color="#22222f",
+        font=("Roboto Medium", 14),
+        text_color="#e9e8e8",
+        placeholder_text='Email Address'
+    )
+    email_entry.place(relx=0.5, rely=0.37, anchor=tkinter.CENTER)
 
     # Bind email entry to enable/disable send button
     email_entry.bind('<KeyRelease>', lambda e: check_email_for_send_button())
 
     # Verification frame (always shown)
     verification_frame = customtkinter.CTkFrame(master=frame, fg_color="transparent", border_width=0)
-    verification_frame.place(relx=0.5, rely=0.39, anchor=tkinter.CENTER)
+    verification_frame.place(relx=0.5, rely=0.44, anchor=tkinter.CENTER)
 
-    # Send code button (left side)
-    send_code_btn = customtkinter.CTkButton(master=verification_frame, width=55, text="Send Code",
-                                            command=send_verification_code, state="disabled")
-    send_code_btn.grid(row=0, column=0, padx=(0, 2))
+    # Send code button with login theme
+    send_code_btn = customtkinter.CTkButton(
+        master=verification_frame,
+        width=80,
+        corner_radius=12,
+        text_color="#e9e8e8",
+        fg_color="#047eaf",
+        hover_color="#22222f",
+        text="Send Code",
+        command=send_verification_code,
+        state="disabled"
+    )
+    send_code_btn.grid(row=0, column=0, padx=(0, 5))
 
-    # Verification code entry (center)
-    verification_entry = customtkinter.CTkEntry(master=verification_frame, width=140, fg_color="transparent",
-                                                placeholder_text='6-digit code')
+    # Verification code entry with login theme
+    verification_entry = customtkinter.CTkEntry(
+        master=verification_frame,
+        width=130,
+        corner_radius=12,
+        border_width=0,
+        fg_color="#22222f",
+        font=("Roboto Medium", 14),
+        text_color="#e9e8e8",
+        placeholder_text='6-digit code'
+    )
     verification_entry.grid(row=0, column=1, padx=(5, 5))
 
-    # Verify code button (right side)
-    verify_code_btn = customtkinter.CTkButton(master=verification_frame, width=40, text="Verify",
-                                              command=verify_email_code)
-    verify_code_btn.grid(row=0, column=2, padx=(2, 0))
+    # Verify code button with login theme
+    verify_code_btn = customtkinter.CTkButton(
+        master=verification_frame,
+        width=70,
+        corner_radius=12,
+        text_color="#e9e8e8",
+        fg_color="#047eaf",
+        hover_color="#22222f",
+        text="Verify",
+        command=verify_email_code
+    )
+    verify_code_btn.grid(row=0, column=2, padx=(5, 0))
 
-    # Verification status label (below the buttons)
-    verify_status_label = customtkinter.CTkLabel(master=frame, text="Enter email to enable verification",
-                                                 fg_color="transparent", text_color="gray")
-    verify_status_label.place(relx=0.5, rely=0.43, anchor=tkinter.CENTER)
+    # Verification status label with login theme
+    verify_status_label = customtkinter.CTkLabel(
+        master=frame,
+        text="Enter email to enable verification",
+        fg_color="transparent",
+        text_color="#e9e8e8",
+        font=("Roboto Medium", 12)
+    )
+    verify_status_label.place(relx=0.5, rely=0.48, anchor=tkinter.CENTER)
 
-    # Username entry
-    username_entry = customtkinter.CTkEntry(master=frame, width=300, fg_color="transparent",
-                                            placeholder_text='Username')
-    username_entry.place(relx=0.5, rely=0.47, anchor=tkinter.CENTER)
+    # Username entry with login theme
+    username_entry = customtkinter.CTkEntry(
+        master=frame,
+        width=300,
+        corner_radius=12,
+        border_width=0,
+        fg_color="#22222f",
+        font=("Roboto Medium", 14),
+        text_color="#e9e8e8",
+        placeholder_text='Username'
+    )
+    username_entry.place(relx=0.5, rely=0.53, anchor=tkinter.CENTER)
 
-    # Password entry
-    password_entry = customtkinter.CTkEntry(master=frame, width=300, fg_color="transparent",
-                                            placeholder_text='Password (min 6 characters)', show="*")
-    password_entry.place(relx=0.5, rely=0.54, anchor=tkinter.CENTER)
+    # Password entry with login theme
+    password_entry = customtkinter.CTkEntry(
+        master=frame,
+        width=300,
+        corner_radius=12,
+        border_width=0,
+        fg_color="#22222f",
+        font=("Roboto Medium", 14),
+        text_color="#e9e8e8",
+        placeholder_text='Password (min 6 characters)',
+        show="*"
+    )
+    password_entry.place(relx=0.5, rely=0.60, anchor=tkinter.CENTER)
 
-    # Confirm password entry
-    password2_entry = customtkinter.CTkEntry(master=frame, width=300, fg_color="transparent",
-                                             placeholder_text='Confirm Password', show="*")
-    password2_entry.place(relx=0.5, rely=0.61, anchor=tkinter.CENTER)
+    # Confirm password entry with login theme
+    password2_entry = customtkinter.CTkEntry(
+        master=frame,
+        width=300,
+        corner_radius=12,
+        border_width=0,
+        fg_color="#22222f",
+        font=("Roboto Medium", 14),
+        text_color="#e9e8e8",
+        placeholder_text='Confirm Password',
+        show="*"
+    )
+    password2_entry.place(relx=0.5, rely=0.67, anchor=tkinter.CENTER)
 
-    # Role selection dropdown
-    role_label = customtkinter.CTkLabel(master=frame, text="Select Role:", fg_color="transparent")
-    role_label.place(relx=0.5, rely=0.67, anchor=tkinter.CENTER)
-
-    role_dropdown = customtkinter.CTkOptionMenu(master=frame, width=300,
-                                                values=["Admin", "IT Staff", "Developer"])
-    role_dropdown.place(relx=0.5, rely=0.72, anchor=tkinter.CENTER)
+    # Role selection dropdown with login theme
+    role_dropdown = customtkinter.CTkOptionMenu(
+        master=frame,
+        width=300,
+        corner_radius=12,
+        fg_color="#22222f",
+        button_color="#047eaf",
+        button_hover_color="#22222f",
+        dropdown_fg_color="#22222f",
+        text_color="#e9e8e8",
+        font=("Roboto Medium", 14),
+        values=["Admin", "IT Staff", "Developer"]
+    )
+    role_dropdown.place(relx=0.5, rely=0.74, anchor=tkinter.CENTER)
     role_dropdown.set("Select Role")  # Default text
 
-    # Terms checkbox
-    check_box = customtkinter.CTkCheckBox(master=frame, checkbox_height=20, checkbox_width=20, border_width=2,
-                                          text="I agree to the Terms of Service and Privacy Policy")
-    check_box.place(relx=0.5, rely=0.79, anchor=tkinter.CENTER)
+    # Terms checkbox with login theme
+    check_box = customtkinter.CTkCheckBox(
+        master=frame,
+        checkbox_height=18,
+        checkbox_width=18,
+        border_width=2,
+        border_color="#15141b",
+        hover_color="#15141b",
+        fg_color="#15141b",
+        corner_radius=12,
+        text_color="#e9e8e8",
+        font=("Roboto Medium", 12),
+        text="I agree to the Terms of Service and Privacy Policy"
+    )
+    check_box.place(relx=0.5, rely=0.80, anchor=tkinter.CENTER)
 
-    # Sign up button
-    signup_btn = customtkinter.CTkButton(master=frame, width=230, text="Sign Up", command=process_signup)
+    # Sign up button with login theme
+    signup_btn = customtkinter.CTkButton(
+        master=frame,
+        width=180,
+        corner_radius=12,
+        text_color="#e9e8e8",
+        fg_color="#047eaf",
+        hover_color="#22222f",
+        font=("Roboto Medium", 14, "bold"),
+        text="Sign Up",
+        command=process_signup
+    )
     signup_btn.place(relx=0.5, rely=0.86, anchor=tkinter.CENTER)
 
-    # Login button
-    login_btn = customtkinter.CTkButton(master=frame, width=230, text="Already Have an Account? Login",
-                                        border_width=2, fg_color="transparent", text_color="#ECEFF1",
-                                        command=back_to_login)
-    login_btn.place(relx=0.5, rely=0.92, anchor=tkinter.CENTER)
+    # Login button with login theme
+    login_btn = customtkinter.CTkButton(
+        master=frame,
+        width=180,
+        corner_radius=12,
+        text_color="#e9e8e8",
+        fg_color="#047eaf",
+        hover_color="#22222f",
+        font=("Roboto Medium", 14),
+        text="Already Have an Account? Login",
+        command=back_to_login
+    )
+    login_btn.place(relx=0.5, rely=0.93, anchor=tkinter.CENTER)
 
     signup.protocol("WM_DELETE_WINDOW", back_to_login)
     signup.mainloop()
