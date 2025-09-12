@@ -439,7 +439,7 @@ def open_dashboard_content(parent_frame):
     # Bind resize event to redraw chart
     def on_canvas_configure(event):
         # Redraw chart when canvas size changes
-        canvas.after(50, lambda: create_professional_pie_chart(pie_canvas, threat_types, total_threats))
+        pie_canvas.after(50, lambda: create_professional_pie_chart(pie_canvas, threat_types, total_threats))
 
     pie_canvas.bind("<Configure>", on_canvas_configure)
 
