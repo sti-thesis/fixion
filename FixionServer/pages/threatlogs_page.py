@@ -137,7 +137,7 @@ class ScrollableTreeView(customtkinter.CTkFrame):
         style = ttk.Style()
         style.theme_use("default")
 
-        # Configure the Treeview colors to match the CustomTkinter theme
+        # Configure the Treeview colors
         style.configure("Treeview",
                         background="#1c253a",
                         foreground="#ffffff",
@@ -157,38 +157,85 @@ class ScrollableTreeView(customtkinter.CTkFrame):
         style.map("Treeview.Heading",
                   background=[('active', '#323b50')])
 
+        # Configure severity-specific row styles
+        style.configure("Critical.Treeview", background="#1c253a", foreground="#ff4757")  # Red
+        style.configure("High.Treeview", background="#1c253a", foreground="#ffa502")  # Orange
+        style.configure("Medium.Treeview", background="#1c253a", foreground="#f1c40f")  # Yellow
+        style.configure("Low.Treeview", background="#1c253a", foreground="#2ed573")  # Green
 
-# Function to load threat data into the treeview - MOVED TO GLOBAL SCOPE
+
+def get_severity_color(severity):
+    """Returns color code for severity levels"""
+    colors = {
+        "Critical": "#ff4757",  # Red
+        "High": "#ffa502",  # Orange
+        "Medium": "#f1c40f",  # Yellow
+        "Low": "#2ed573"  # Green
+    }
+    return colors.get(severity, "#ffffff")
+
+
 def load_threat_data(tree, threats):
+    """Load threat data with colored severity rows"""
     # Clear existing data
     for item in tree.get_children():
         tree.delete(item)
 
-    # Insert threat data
-    for threat in threats:
-        # Add a tag based on severity for color coding
-        tag = threat["severity"].lower()
+    # Get the style object to create severity-specific row colors
+    style = ttk.Style()
 
-        tree.insert("", "end", values=(
+    # Insert data with severity-based row coloring
+    for threat in threats:
+        severity = threat['severity']
+
+        # Insert the row with just the severity text
+        item_id = tree.insert("", "end", values=(
+            severity,  # Just the severity text
             threat["id"],
             threat["timestamp"],
             threat["type"],
-            threat["severity"],
             threat["client_machine"],
             threat["description"],
             threat["action_taken"]
-        ), tags=(tag,))
+        ))
 
-    # Configure tag colors for severity levels
-    tree.tag_configure("critical", background="#5f1818")  # Dark red for critical
-    tree.tag_configure("high", background="#7d4e16")  # Dark orange for high
-    tree.tag_configure("medium", background="#6b6b10")  # Dark yellow for medium
-    tree.tag_configure("low", background="#1f5f1f")  # Dark green for low
+        # Apply row-based color styling based on severity
+        if severity == "Critical":
+            tree.set(item_id, "severity", "Critical")
+            # Create and apply critical row style
+            style.configure("Critical.Treeview",
+                            background="#4a1d1d",  # Dark red background
+                            foreground="#ff6b6b")  # Light red text
+            tree.item(item_id, tags=("critical",))
+        elif severity == "High":
+            tree.set(item_id, "severity", "High")
+            style.configure("High.Treeview",
+                            background="#4a3d1d",  # Dark orange background
+                            foreground="#ffa726")  # Orange text
+            tree.item(item_id, tags=("high",))
+        elif severity == "Medium":
+            tree.set(item_id, "severity", "Medium")
+            style.configure("Medium.Treeview",
+                            background="#4a4a1d",  # Dark yellow background
+                            foreground="#ffeb3b")  # Yellow text
+            tree.item(item_id, tags=("medium",))
+        elif severity == "Low":
+            tree.set(item_id, "severity", "Low")
+            style.configure("Low.Treeview",
+                            background="#1d4a1d",  # Dark green background
+                            foreground="#66bb6a")  # Light green text
+            tree.item(item_id, tags=("low",))
+
+    # Configure tag-based styling for each severity level
+    tree.tag_configure("critical", background="#4a1d1d", foreground="#ff6b6b")
+    tree.tag_configure("high", background="#4a3d1d", foreground="#ffa726")
+    tree.tag_configure("medium", background="#4a4a1d", foreground="#ffeb3b")
+    tree.tag_configure("low", background="#1d4a1d", foreground="#66bb6a")
 
 
 def open_threatlogs_page(parent_frame):
     """
-    Enhanced Threat logs page with filtering capabilities
+    Threat logs page with colored severity indicators
     """
     # Clear the frame first
     for widget in parent_frame.winfo_children():
@@ -207,7 +254,7 @@ def open_threatlogs_page(parent_frame):
     filter_frame = customtkinter.CTkFrame(parent_frame, fg_color="#22232e")
     filter_frame.pack(fill="x", padx=20, pady=10)
 
-    # Create filter controls (removed threat type filter)
+    # Create filter controls
     # 1. Severity Filter
     severity_label = customtkinter.CTkLabel(filter_frame, text="Severity:", text_color="#e9e8e8")
     severity_label.grid(row=0, column=0, padx=(20, 5), pady=10, sticky="w")
@@ -226,7 +273,6 @@ def open_threatlogs_page(parent_frame):
     date_label = customtkinter.CTkLabel(filter_frame, text="Date:", text_color="#e9e8e8")
     date_label.grid(row=0, column=2, padx=(20, 5), pady=10, sticky="w")
 
-    # For simplicity, use a dropdown for date ranges instead of a date picker
     date_ranges = ["All", "Today", "Last 3 Days", "Last Week", "Last Month"]
     date_var = tk.StringVar(value="All")
     date_dropdown = customtkinter.CTkOptionMenu(
@@ -243,27 +289,27 @@ def open_threatlogs_page(parent_frame):
 
     # Configure the treeview columns
     tree = tree_frame.tree
-    columns = ("id", "timestamp", "type", "severity", "client_machine", "description", "action")
+    columns = ("severity", "id", "timestamp", "type", "client_machine", "description", "action")
     tree["columns"] = columns
-    tree["show"] = "headings"  # Hide the default first column
+    tree["show"] = "headings"
 
     # Define column headings
+    tree.heading("severity", text="Severity")
     tree.heading("id", text="ID")
     tree.heading("timestamp", text="Timestamp")
     tree.heading("type", text="Threat Type")
-    tree.heading("severity", text="Severity")
     tree.heading("client_machine", text="Client Machine")
     tree.heading("description", text="Description")
     tree.heading("action", text="Action Taken")
 
-    # Set column widths
-    tree.column("id", width=80, minwidth=80)
-    tree.column("timestamp", width=150, minwidth=150)
-    tree.column("type", width=150, minwidth=150)
-    tree.column("severity", width=100, minwidth=100)
-    tree.column("client_machine", width=150, minwidth=150)
-    tree.column("description", width=250, minwidth=250)
-    tree.column("action", width=200, minwidth=200)
+    # Set column widths with center alignment
+    tree.column("severity", width=140, minwidth=140, anchor="center")
+    tree.column("id", width=80, minwidth=80, anchor="center")
+    tree.column("timestamp", width=150, minwidth=150, anchor="center")
+    tree.column("type", width=150, minwidth=150, anchor="center")
+    tree.column("client_machine", width=150, minwidth=150, anchor="center")
+    tree.column("description", width=250, minwidth=250, anchor="center")
+    tree.column("action", width=200, minwidth=200, anchor="center")
 
     # Create a details frame for displaying threat details when clicking on a row
     details_frame = customtkinter.CTkFrame(parent_frame, fg_color="#22232e")
@@ -288,7 +334,7 @@ def open_threatlogs_page(parent_frame):
     affected_files_frame = customtkinter.CTkFrame(details_frame, fg_color="#22232e")
     affected_files_frame.pack(fill="x", padx=15, pady=5)
 
-    # Apply Filter Button - MOVED AFTER TREE IS CREATED
+    # Apply Filter Button
     apply_button = customtkinter.CTkButton(
         filter_frame,
         text="Apply Filters",
@@ -297,7 +343,7 @@ def open_threatlogs_page(parent_frame):
     )
     apply_button.grid(row=0, column=4, padx=(20, 10), pady=10, sticky="e")
 
-    # Function to apply filters (removed type_filter parameter)
+    # Function to apply filters
     def apply_filters(severity_filter, date_filter):
         # Clear current data
         for item in tree.get_children():
@@ -343,7 +389,7 @@ def open_threatlogs_page(parent_frame):
 
         # Get the threat ID from the selected item
         item = tree.item(selection[0])
-        threat_id = item["values"][0]
+        threat_id = item["values"][1]  # ID is in column 1
 
         # Find the corresponding threat data
         threat = next((t for t in sample_threats if t["id"] == threat_id), None)
@@ -376,29 +422,39 @@ def open_threatlogs_page(parent_frame):
         info_grid.pack(fill="x", padx=10, pady=5)
 
         # Client Machine
-        customtkinter.CTkLabel(info_grid, text="Client Machine:", font=("Roboto", 12, "bold"), text_color="#e9e8e8").grid(row=0, column=0,
-                                                                                                   sticky="w", padx=5,
-                                                                                                   pady=2)
-        customtkinter.CTkLabel(info_grid, text=threat["client_machine"], text_color="#e9e8e8").grid(row=0, column=1, sticky="w", padx=5,
-                                                                              pady=2)
+        customtkinter.CTkLabel(info_grid, text="Client Machine:", font=("Roboto", 12, "bold"),
+                               text_color="#e9e8e8").grid(row=0, column=0,
+                                                          sticky="w", padx=5,
+                                                          pady=2)
+        customtkinter.CTkLabel(info_grid, text=threat["client_machine"], text_color="#e9e8e8").grid(row=0, column=1,
+                                                                                                    sticky="w", padx=5,
+                                                                                                    pady=2)
 
         # OS
-        customtkinter.CTkLabel(info_grid, text="Operating System:", font=("Roboto", 12, "bold"), text_color="#e9e8e8").grid(row=1, column=0,
-                                                                                                     sticky="w", padx=5,
-                                                                                                     pady=2)
-        customtkinter.CTkLabel(info_grid, text=machine_info["os"], text_color="#e9e8e8").grid(row=1, column=1, sticky="w", padx=5, pady=2)
+        customtkinter.CTkLabel(info_grid, text="Operating System:", font=("Roboto", 12, "bold"),
+                               text_color="#e9e8e8").grid(row=1, column=0,
+                                                          sticky="w", padx=5,
+                                                          pady=2)
+        customtkinter.CTkLabel(info_grid, text=machine_info["os"], text_color="#e9e8e8").grid(row=1, column=1,
+                                                                                              sticky="w", padx=5,
+                                                                                              pady=2)
 
         # IP
-        customtkinter.CTkLabel(info_grid, text="IP Address:", font=("Roboto", 12, "bold"), text_color="#e9e8e8").grid(row=2, column=0,
-                                                                                               sticky="w", padx=5,
-                                                                                               pady=2)
-        customtkinter.CTkLabel(info_grid, text=machine_info["ip"], text_color="#e9e8e8").grid(row=2, column=1, sticky="w", padx=5, pady=2)
+        customtkinter.CTkLabel(info_grid, text="IP Address:", font=("Roboto", 12, "bold"), text_color="#e9e8e8").grid(
+            row=2, column=0,
+            sticky="w", padx=5,
+            pady=2)
+        customtkinter.CTkLabel(info_grid, text=machine_info["ip"], text_color="#e9e8e8").grid(row=2, column=1,
+                                                                                              sticky="w", padx=5,
+                                                                                              pady=2)
 
         # Location
-        customtkinter.CTkLabel(info_grid, text="Location:", font=("Roboto", 12, "bold"), text_color="#e9e8e8").grid(row=3, column=0,
-                                                                                             sticky="w", padx=5, pady=2)
-        customtkinter.CTkLabel(info_grid, text=machine_info["location"], text_color="#e9e8e8").grid(row=3, column=1, sticky="w", padx=5,
-                                                                              pady=2)
+        customtkinter.CTkLabel(info_grid, text="Location:", font=("Roboto", 12, "bold"), text_color="#e9e8e8").grid(
+            row=3, column=0,
+            sticky="w", padx=5, pady=2)
+        customtkinter.CTkLabel(info_grid, text=machine_info["location"], text_color="#e9e8e8").grid(row=3, column=1,
+                                                                                                    sticky="w", padx=5,
+                                                                                                    pady=2)
 
         # Affected Files Section
         files_title = customtkinter.CTkLabel(
@@ -467,5 +523,5 @@ def open_threatlogs_page(parent_frame):
     # Bind click event to show details
     tree.bind("<<TreeviewSelect>>", show_threat_details)
 
-    # Initially load all threat data - NOW OUTSIDE OF ANY FUNCTION
+    # Initially load all threat data
     load_threat_data(tree, sample_threats)
