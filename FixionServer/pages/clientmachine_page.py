@@ -278,7 +278,7 @@ def open_clientmachine_page(parent_frame):
         show_actions(machine)
 
     def show_actions(machine):
-        """Display action buttons for the selected machine"""
+        """Display action buttons for the selected machine - without isolate button"""
         # Clear previous actions
         for widget in actions_display_frame.winfo_children():
             widget.destroy()
@@ -333,17 +333,7 @@ def open_clientmachine_page(parent_frame):
         )
         rollback_button.grid(row=1, column=1, padx=10, pady=5, sticky="w")
 
-        # Row 3
-        is_isolated = machine.get("isolated", False)
-        isolate_text = "Connect to Network" if is_isolated else "Isolate Machine"
-        isolate_button = customtkinter.CTkButton(
-            master=buttons_grid,
-            text=isolate_text,
-            fg_color="#63003d" if not is_isolated else "#1b720f",
-            command=lambda: handle_action("isolate", machine),
-            width=140
-        )
-        isolate_button.grid(row=2, column=0, padx=(0, 10), pady=5, sticky="w")
+        # Note: Isolate machine button has been removed
 
     def handle_action(action, machine):
         """Handle the remote actions for machines"""
@@ -354,32 +344,16 @@ def open_clientmachine_page(parent_frame):
             "quick_scan": f"Initiating quick scan on {machine_name}...",
             "update": f"Updating virus definitions on {machine_name}...",
             "rollback": f"WARNING: About to rollback {machine_name} to previous system snapshot.",
-            "isolate": "isolate_action",  # Special handling
             "remote": f"Establishing remote desktop connection to {machine_name}..."
         }
 
-        # Special handling for isolate action
-        if action == "isolate":
-            currently_isolated = machine.get("isolated", False)
-            if currently_isolated:
-                message = f"Reconnecting {machine_name} to network..."
-                machine["isolated"] = False
-            else:
-                message = f"WARNING: About to isolate {machine_name} from network. Continue?"
-                confirm = messagebox.askyesno("Confirm Isolation", message)
-                if confirm:
-                    message = f"Isolating {machine_name} from network..."
-                    machine["isolated"] = True
-                else:
-                    return
-        else:
-            message = actions[action]
+        message = actions[action]
 
-            # Confirmation for potentially destructive actions
-            if action == "rollback":
-                confirm = messagebox.askyesno("Confirm Rollback", message + " Continue?")
-                if not confirm:
-                    return
+        # Confirmation for potentially destructive actions
+        if action == "rollback":
+            confirm = messagebox.askyesno("Confirm Rollback", message + " Continue?")
+            if not confirm:
+                return
 
         # Show action in progress
         messagebox.showinfo("Action Initiated", message)
@@ -424,7 +398,7 @@ def open_clientmachine_page(parent_frame):
 
         machines.sort(key=sort_key)
 
-        # Create grid layout - 3 columns
+        # Create grid layout - 5 columns
         columns = 5
         for i, machine in enumerate(machines):
             row = i // columns
@@ -485,7 +459,7 @@ def open_clientmachine_page(parent_frame):
                 threat_count = machine.get("threats_detected", 0)
                 threat_indicator = customtkinter.CTkLabel(
                     master=machine_card,
-                    text=f"⚠️ {threat_count}",
+                    text=f"⚠ {threat_count}",
                     font=("Roboto", 9),
                     text_color="#63003d"
                 )

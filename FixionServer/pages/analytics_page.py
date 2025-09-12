@@ -291,40 +291,262 @@ def create_client_table(parent, clients):
         protection_label.grid(row=0, column=4, padx=10, pady=15, sticky="w")
 
 
-def create_pie_chart(canvas, threat_types, total_threats):
-    """Draw pie chart on canvas"""
+def create_professional_pie_chart(canvas, threat_types, total_threats):
+    """Create a highly professional, clean pie chart with modern styling"""
     canvas.delete("all")
-    center_x, center_y, radius = 150, 150, 100
-    start_angle = 0
 
-    for threat_type, data in threat_types.items():
-        angle = (data["count"] / total_threats) * 360
-        canvas.create_arc(center_x - radius, center_y - radius, center_x + radius, center_y + radius,
-                          start=start_angle, extent=angle, fill=data["color"], outline="#323b50", width=2)
-        start_angle += angle
+    # Get canvas dimensions
+    canvas.update_idletasks()
+    width = canvas.winfo_width() or 350
+    height = canvas.winfo_height() or 350
+
+    # Calculate center and radius
+    center_x = width // 2
+    center_y = height // 2
+    base_radius = min(width, height) // 3
+    radius = max(base_radius, 90)
+
+    # Professional color palette with accessibility in mind
+    professional_colors = [
+        "#3B82F6",  # Blue - Primary
+        "#10B981",  # Emerald - Success
+        "#F59E0B",  # Amber - Warning
+        "#EF4444",  # Red - Danger
+        "#8B5CF6",  # Violet - Secondary
+        "#6B7280",  # Gray - Neutral
+        "#EC4899",  # Pink - Accent
+        "#14B8A6"  # Teal - Info
+    ]
+
+    if total_threats == 0:
+        # Professional empty state
+        canvas.create_oval(
+            center_x - radius, center_y - radius,
+            center_x + radius, center_y + radius,
+            fill="#F8FAFC", outline="#E2E8F0", width=2
+        )
+        canvas.create_text(
+            center_x, center_y,
+            text="No Data Available",
+            fill="#64748B",
+            font=("Roboto", 14),
+            anchor="center"
+        )
+        return
+
+    # Sort threats by count for better visual hierarchy
+    sorted_threats = sorted(threat_types.items(), key=lambda x: x[1]["count"], reverse=True)
+
+    start_angle = -90  # Start from top (12 o'clock)
+
+    # Draw subtle drop shadow
+    shadow_offset = 2
+    shadow_radius = radius + 1
+    for i, (threat_type, data) in enumerate(sorted_threats):
+        angle_extent = (data["count"] / total_threats) * 360
+        canvas.create_arc(
+            center_x - shadow_radius + shadow_offset,
+            center_y - shadow_radius + shadow_offset,
+            center_x + shadow_radius + shadow_offset,
+            center_y + shadow_radius + shadow_offset,
+            start=start_angle, extent=angle_extent,
+            fill="#1F2937", outline="", width=0, style="pieslice",
+            stipple="gray25"
+        )
+        start_angle += angle_extent
+
+    # Reset angle for main chart
+    start_angle = -90
+
+    # Draw main pie slices
+    for i, (threat_type, data) in enumerate(sorted_threats):
+        angle_extent = (data["count"] / total_threats) * 360
+        color = professional_colors[i % len(professional_colors)]
+
+        # Main slice
+        canvas.create_arc(
+            center_x - radius, center_y - radius,
+            center_x + radius, center_y + radius,
+            start=start_angle, extent=angle_extent,
+            fill=color,
+            outline="#FFFFFF",
+            width=2,
+            style="pieslice"
+        )
+
+        # No percentage labels on slices - cleaner look
+
+        start_angle += angle_extent
+
+    # Create modern donut hole
+    inner_radius = radius * 0.45
+
+    # Outer ring of donut hole
+    canvas.create_oval(
+        center_x - inner_radius, center_y - inner_radius,
+        center_x + inner_radius, center_y + inner_radius,
+        fill="#FFFFFF", outline="#E5E7EB", width=1
+    )
+
+    # Inner shadow effect
+    inner_shadow_radius = inner_radius - 3
+    canvas.create_oval(
+        center_x - inner_shadow_radius, center_y - inner_shadow_radius,
+        center_x + inner_shadow_radius, center_y + inner_shadow_radius,
+        fill="", outline="#F3F4F6", width=1
+    )
+
+    # Center text with professional typography
+    canvas.create_text(
+        center_x, center_y - 12,
+        text="Total Threats",
+        fill="#6B7280",
+        font=("Roboto", 10),
+        anchor="center"
+    )
+
+    canvas.create_text(
+        center_x, center_y + 8,
+        text=f"{total_threats:,}",
+        fill="#1F2937",
+        font=("Roboto", 16, "bold"),
+        anchor="center"
+    )
 
 
-def create_legend(parent, threat_types, total_threats):
-    """Create legend for pie chart"""
-    customtkinter.CTkLabel(parent, text="Threat Types", font=("Roboto", 14, "bold"), text_color="#e9e8e8").pack(
-        anchor="w", padx=20, pady=(20, 10))
+def create_professional_legend(parent, threat_types, total_threats):
+    """Create a professional legend with modern styling and better organization"""
+    # Clear previous legend
+    for widget in parent.winfo_children():
+        widget.destroy()
 
-    for threat_type, data in threat_types.items():
-        # Create row container
-        row = customtkinter.CTkFrame(parent, fg_color="transparent")
-        row.pack(fill="x", padx=20, pady=5)
+    # Professional color palette matching pie chart
+    professional_colors = [
+        "#3B82F6",  # Blue
+        "#10B981",  # Emerald
+        "#F59E0B",  # Amber
+        "#EF4444",  # Red
+        "#8B5CF6",  # Violet
+        "#6B7280",  # Gray
+        "#EC4899",  # Pink
+        "#14B8A6"  # Teal
+    ]
 
-        # Color indicator
-        customtkinter.CTkFrame(row, width=15, height=15, corner_radius=2,
-                               fg_color=data["color"]).pack(side="left", padx=(0, 10))
+    # Header section with improved layout
+    header_frame = customtkinter.CTkFrame(parent, fg_color="transparent")
+    header_frame.pack(fill="x", padx=25, pady=(25, 15))
+
+    # Title with modern styling
+    title_label = customtkinter.CTkLabel(
+        header_frame,
+        text="Threat Distribution",
+        font=("Roboto", 16, "bold"),
+        text_color="#FFFFFF"
+    )
+    title_label.pack(side="left")
+
+    # Summary stats in header
+    if total_threats > 0:
+        summary_label = customtkinter.CTkLabel(
+            header_frame,
+            text=f"{total_threats:,} Total",
+            font=("Roboto", 12),
+            text_color="#94A3B8"
+        )
+        summary_label.pack(side="right")
+
+    # Professional separator
+    separator = customtkinter.CTkFrame(parent, height=1, fg_color="#374151")
+    separator.pack(fill="x", padx=25, pady=(0, 20))
+
+    if total_threats == 0:
+        # Empty state message
+        empty_label = customtkinter.CTkLabel(
+            parent,
+            text="No threat data to display",
+            font=("Roboto", 13),
+            text_color="#6B7280"
+        )
+        empty_label.pack(pady=30)
+        return
+
+    # Sort threats for consistency with pie chart
+    sorted_threats = sorted(threat_types.items(), key=lambda x: x[1]["count"], reverse=True)
+
+    # Legend entries container
+    entries_container = customtkinter.CTkFrame(parent, fg_color="transparent")
+    entries_container.pack(fill="both", expand=True, padx=25, pady=(0, 25))
+
+    # Create legend entries with professional styling
+    for i, (threat_type, data) in enumerate(sorted_threats):
+        percentage = (data["count"] / total_threats) * 100
+
+        # Professional row container
+        row_frame = customtkinter.CTkFrame(
+            entries_container,
+            fg_color="#2D3748",
+            corner_radius=8,
+            height=55
+        )
+        row_frame.pack(fill="x", pady=6)
+        row_frame.pack_propagate(False)
+
+        # Left section with color indicator and name
+        left_section = customtkinter.CTkFrame(row_frame, fg_color="transparent")
+        left_section.pack(side="left", fill="y", padx=15, pady=10)
+
+        # Modern color indicator
+        color_frame = customtkinter.CTkFrame(
+            left_section,
+            width=20,
+            height=20,
+            corner_radius=4,
+            fg_color=professional_colors[i % len(professional_colors)]
+        )
+        color_frame.pack(side="left", padx=(0, 12))
 
         # Threat type name
-        customtkinter.CTkLabel(row, text=threat_type, font=("Roboto", 12), text_color="#e9e8e8").pack(side="left")
+        name_label = customtkinter.CTkLabel(
+            left_section,
+            text=threat_type,
+            font=("Roboto", 13, "bold"),
+            text_color="#FFFFFF"
+        )
+        name_label.pack(side="left")
 
-        # Count and percentage
-        percentage = (data["count"] / total_threats) * 100
-        customtkinter.CTkLabel(row, text=f"{data['count']} ({percentage:.1f}%)",
-                               font=("Roboto", 12), text_color="#e9e8e8").pack(side="right")
+        # Right section with statistics
+        right_section = customtkinter.CTkFrame(row_frame, fg_color="transparent")
+        right_section.pack(side="right", fill="y", padx=15, pady=10)
+
+        # Count with professional formatting
+        count_label = customtkinter.CTkLabel(
+            right_section,
+            text=f"{data['count']:,}",
+            font=("Roboto", 13, "bold"),
+            text_color="#FFFFFF"
+        )
+        count_label.pack(side="right", padx=(10, 0))
+
+        # Percentage with accent color
+        percentage_label = customtkinter.CTkLabel(
+            right_section,
+            text=f"{percentage:.1f}%",
+            font=("Roboto", 12),
+            text_color="#94A3B8"
+        )
+        percentage_label.pack(side="right")
+
+        # Progress bar for visual representation
+        progress_width = int((percentage / 100) * 60)
+        if progress_width > 0:
+            progress_frame = customtkinter.CTkFrame(
+                row_frame,
+                width=progress_width,
+                height=3,
+                corner_radius=2,
+                fg_color=professional_colors[i % len(professional_colors)]
+            )
+            progress_frame.place(x=15, y=52)
 
 
 def open_analytics_page(parent_frame):
@@ -405,40 +627,40 @@ def open_analytics_page(parent_frame):
 
     create_client_table(table_container, get_client_machines())
 
-    # ======= THREAT BREAKDOWN =======
+    # ======= PROFESSIONAL THREAT BREAKDOWN =======
     breakdown_section = customtkinter.CTkFrame(main_content, fg_color="#22232e")
     breakdown_section.pack(fill="x", padx=10, pady=10)
 
-    customtkinter.CTkLabel(breakdown_section, text="Threat Type Breakdown",
-                           font=("Roboto", 16, "bold"), text_color="#e9e8e8").pack(anchor="w", padx=20, pady=10)
+    customtkinter.CTkLabel(breakdown_section, text="Threat Type Analysis",
+                           font=("Roboto", 16, "bold"), text_color="#e9e8e8").pack(anchor="w", padx=20, pady=(15, 5))
 
-    # Pie chart and legend container
+    # Professional pie chart and legend container
     pie_container = customtkinter.CTkFrame(breakdown_section, fg_color="transparent")
-    pie_container.pack(fill="x", padx=20, pady=10)
+    pie_container.pack(fill="x", padx=20, pady=15)
 
-    # Pie chart
-    pie_chart_section = customtkinter.CTkFrame(pie_container, fg_color="#22232e")
-    pie_chart_section.pack(side="left", fill="both", expand=True, padx=(0, 10))
+    # Professional pie chart section
+    pie_chart_section = customtkinter.CTkFrame(pie_container, fg_color="#1c253a", corner_radius=12)
+    pie_chart_section.pack(side="left", fill="both", expand=True, padx=(0, 15))
 
-    pie_canvas = tk.Canvas(pie_chart_section, bg="#1c253a", highlightthickness=0)
-    pie_canvas.pack(fill="both", expand=True, padx=20, pady=20)
+    pie_canvas = tk.Canvas(pie_chart_section, bg="#1c253a", highlightthickness=0, height=350, width=350)
+    pie_canvas.pack(fill="both", expand=True, padx=25, pady=25)
 
-    # Legend
-    legend_section = customtkinter.CTkFrame(pie_container, fg_color="#22232e")
-    legend_section.pack(side="right", fill="both", expand=True, padx=(10, 0))
+    # Professional legend section
+    legend_section = customtkinter.CTkFrame(pie_container, fg_color="#1c253a", corner_radius=12)
+    legend_section.pack(side="right", fill="both", expand=True, padx=(15, 0))
 
-    # Generate threat type data
+    # Generate threat type data with more realistic distribution
     threat_types = {
-        "Malware": {"count": random.randint(30, 60), "color": "#1b720f"},
-        "Phishing": {"count": random.randint(20, 40), "color": "#714bae"},
-        "Ransomware": {"count": random.randint(10, 25), "color": "#63003d"},
-        "Trojan": {"count": random.randint(15, 30), "color": "#2a6f1e"},
-        "Spyware": {"count": random.randint(10, 20), "color": "#116805"},
-        "Zero-day": {"count": random.randint(5, 15), "color": "#4e288b"}
+        "Malware": {"count": random.randint(45, 65)},
+        "Phishing": {"count": random.randint(25, 35)},
+        "Ransomware": {"count": random.randint(8, 15)},
+        "Trojan": {"count": random.randint(15, 25)},
+        "Spyware": {"count": random.randint(10, 18)},
+        "Zero-day": {"count": random.randint(3, 8)}
     }
 
     total_threats = sum(threat["count"] for threat in threat_types.values())
 
-    # Draw pie chart and create legend
-    pie_canvas.after(100, lambda: create_pie_chart(pie_canvas, threat_types, total_threats))
-    create_legend(legend_section, threat_types, total_threats)
+    # Draw professional pie chart and create professional legend
+    pie_canvas.after(100, lambda: create_professional_pie_chart(pie_canvas, threat_types, total_threats))
+    create_professional_legend(legend_section, threat_types, total_threats)
