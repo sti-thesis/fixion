@@ -383,7 +383,7 @@ def open_dashboard_content(parent_frame):
         font=("Roboto", 24, "bold"),
         text_color="#e9e8e8"
     )
-    title.pack(pady=12, anchor="w", padx=12)
+
 
     # Main scrollable content
     main_content = customtkinter.CTkScrollableFrame(parent_frame, width=950, height=700, fg_color="#22222f")
@@ -442,6 +442,7 @@ def open_dashboard_content(parent_frame):
         pie_canvas.after(50, lambda: create_professional_pie_chart(pie_canvas, threat_types, total_threats))
 
     pie_canvas.bind("<Configure>", on_canvas_configure)
+
 
     # Legend section
     legend_section = customtkinter.CTkFrame(chart_container, fg_color="#1c253a", corner_radius=12)
@@ -563,8 +564,10 @@ def open_dashboard_page(user_info=None):
     mainframe.title('Server UI Dashboard')
 
     # Set dimensions and center the window
-    width, height = 1250, 800
-    center_window(mainframe, width, height)
+
+    width, height = 1100, 750
+    center_window(dashboard, width, height)
+
 
     # Create the main layout frames
     sidebar_frame = customtkinter.CTkFrame(master=mainframe, width=118, corner_radius=24, fg_color="#122a3e")
@@ -600,9 +603,11 @@ def open_dashboard_page(user_info=None):
     logo_path = os.path.join(os.path.dirname(__file__), "logo", "fixion_logo.png")
     print(f"Trying to load logo from: {logo_path}")
     logo_image = customtkinter.CTkImage(
+
         light_image=Image.open(logo_path),
         size=(38, 48)
     )
+
 
     logo_label = customtkinter.CTkLabel(
         master=sidebar_frame,
@@ -628,7 +633,9 @@ def open_dashboard_page(user_info=None):
             icon_image = customtkinter.CTkImage(
                 light_image=Image.open(icon_path),
                 dark_image=Image.open(icon_path),
-                size=(35, 35)  # Increased from 30x30 to 45x45
+
+                size=(25, 25)  # Increased from 30x30 to 45x45
+
             )
 
             # Create a label with the icon image
@@ -638,23 +645,26 @@ def open_dashboard_page(user_info=None):
                 text=""  # No text, just the icon
             )
             # Pack the icon at the top
+
             icon_label.pack(pady=(5, 10))
+
 
             # Store reference to bind click event later
             icon_element = icon_label
         except Exception as e:
             # If icon not found, create empty frame as placeholder
             print(f"Failed to load icon {icon_path}: {e}")
-            icon_frame = customtkinter.CTkFrame(master=item_frame, width=45, height=45)
-            icon_frame.pack(pady=(5, 2))
+            icon_frame = customtkinter.CTkFrame(master=item_frame, width=35, height=35)
+            icon_frame.pack(pady=(1, 1))
             icon_element = icon_frame
 
         # Label for the item text - centered below the icon
         item_label = customtkinter.CTkLabel(
             master=item_frame,
             text=item["name"],
-            text_color="#e9e8e8",
-            font=("Roboto Medium", 12),
+
+            font=("Arial", 11),
+
             anchor="center"  # Center the text
         )
         item_label.pack(pady=(5, 10))
